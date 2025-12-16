@@ -115,11 +115,6 @@
 
         function openStudioModal() {
             const author = localStorage.getItem('tublox_username');
-            if (!author) {
-                alert('Please log in first to use the Studio.');
-                location.href = '/';
-                return;
-            }
             loadMyGames();
             document.getElementById('studio-modal').style.display = 'block';
         }
