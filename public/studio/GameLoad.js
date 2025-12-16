@@ -1,4 +1,4 @@
-// studio/GameLoad.js
+// studio/GameLoad.js - ИСПРАВЛЕНО
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('id');
@@ -42,8 +42,20 @@ function loadLevel() {
             }
 
             console.log('Level loaded:', gameLevel);
-            // Запуск отрисовки после загрузки
-            loop(); 
+            
+            // ИСПРАВЛЕНИЕ: Проверяем, существует ли функция 'draw' 
+            // и вызываем ее для запуска цикла отрисовки.
+            if (typeof draw === 'function') {
+                 // ** Мы не вызываем draw(), так как requestAnimationFrame(draw) 
+                 //    уже был вызван в editor.js. Мы просто обновляем свойства.**
+                 // Вместо этого, просто убедимся, что панель свойств обновлена
+                 if (typeof updatePropertiesPanel === 'function') {
+                    updatePropertiesPanel();
+                 }
+            } else {
+                 console.warn("Function 'draw' not found. Is editor.js loaded correctly?");
+            }
+
         } else {
             throw new Error(data.message || 'Failed to load game data.');
         }
