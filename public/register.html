@@ -8,25 +8,83 @@
 </head>
 <body class="auth-body">
     <div class="auth-box">
-        <h2>Регистрация TuBlox ID</h2>
-        <input type="text" id="inp-nick" placeholder="Никнейм">
-        <input type="password" id="inp-pass" placeholder="Пароль">
-        <button onclick="handleRegister()">Создать аккаунт</button>
+        <div class="auth-header">
+            <img src="avatar.png" class="auth-logo" alt="TuBlox Logo">
+            <h2>Регистрация TuBlox ID</h2>
+        </div>
+
+        <div class="auth-form">
+            <input type="text" id="inp-nick" placeholder="Никнейм">
+            <input type="password" id="inp-pass" placeholder="Пароль">
+            <button class="primary-btn" onclick="handleRegister()">Создать аккаунт</button>
+        </div>
+
+        <div class="divider">
+            <span>или через мессенджер</span>
+        </div>
+
+        <div id="telegram-login-container">
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="TuBloxbot" 
+                data-size="large" 
+                data-radius="10" 
+                data-onauth="onTelegramAuth(user)" 
+                data-request-access="write"></script>
+        </div>
+
         <p id="auth-msg" class="error-msg"></p>
-        <p class="small-link">Уже есть аккаунт? <a href="login.html">Войти</a></p>
+        
+        <p class="small-link">
+            Уже есть аккаунт? <a href="login.html">Войти</a>
+        </p>
     </div>
 
     <script src="auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Если уже авторизован, перекинуть на dashboard
-            checkAuthAndRedirect(true);
+            // Если игрок уже залогинен, отправляем на главную
+            if (typeof checkAuthAndRedirect === "function") {
+                checkAuthAndRedirect(true);
+            }
         });
 
+        // Обычная регистрация
         function handleRegister() {
             const username = document.getElementById('inp-nick').value;
             const password = document.getElementById('inp-pass').value;
+            
+            if (!username || !password) {
+                document.getElementById('auth-msg').innerText = "Заполните все поля";
+                return;
+            }
+            
             authenticate('register', username, password);
+        }
+
+        // Вход через Telegram
+        function onTelegramAuth(user) {
+            console.log('Данные игрока из TG:', user);
+            
+            // Отправляем данные на сервер для проверки и создания сессии
+            fetch('/auth/telegram', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Сохраняем имя (из TG или ник) и переходим в игру
+                    localStorage.setItem('tublox_username', data.username);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('auth-msg').innerText = "Ошибка авторизации через Telegram";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('auth-msg').innerText = "Ошибка соединения с сервером";
+            });
         }
     </script>
 </body>

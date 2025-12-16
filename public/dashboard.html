@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TuBlox - Dashboard </title>
+    <title>TuBlox - Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,32 +13,38 @@
             <h1>TuBlox 2</h1>
         </div>
         <div class="header-right">
-            <span id="user-display">Hello, Player!</span>
-            <button onclick="logout()">Logout</button>
+            <div class="user-info">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span id="user-display">Hello, Player!</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                Logout
+            </button>
         </div>
     </header>
 
     <div class="container">
-        <h2>Popular Games</h2>
+        <h2>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--accent-secondary)"><path d="M12 2l2.45 7.55H22l-6.12 4.45L18.33 22 12 17.27 5.67 22l2.45-7.55L2 9.55h7.55z"/></svg>
+            Popular Games
+        </h2>
         <div id="games-list" class="games-grid">
             </div>
     </div>
 
-    <script src="auth.js"></script> <script src="/socket.io/socket.io.js"></script>
+    <script src="auth.js"></script> 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         function playGame(id) {
             window.location.href = `/game.html?id=${id}`;
         }
 
-        // ===============================================
-        // 2. ИНИЦИАЛИЗАЦИЯ (Когда страница загружена)
-        // ===============================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Проверка, что пользователь авторизован, иначе перенаправить
             checkAuthAndRedirect(false); 
             
-            const username = localStorage.getItem('tublox_username');
-            document.getElementById('user-display').innerText = `Привет, ${username}!`;
+            const username = localStorage.getItem('tublox_username') || "Player";
+            document.getElementById('user-display').innerText = username;
             
             const socket = io();
             const list = document.getElementById('games-list');
@@ -48,16 +54,23 @@
                 games.forEach(game => {
                     const card = document.createElement('div');
                     card.className = 'game-card';
-                    // Обрати внимание: onclick вызывает глобальную функцию playGame(id)
                     card.innerHTML = `
                         <div class="card-header">
                             <h3>${game.name}</h3>
-                            <span class="online-badge">Online: ${game.online}</span>
+                            <span class="online-badge"><span class="dot"></span> ${game.online} Online</span>
                         </div>
-                        <p class="author">Author: ${game.author}</p>
+                        <p class="author">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                            ${game.author}
+                        </p>
                         <p class="desc">${game.desc}</p>
-                        <div class="stats"> ${game.visits} Visits</div>
-                        <button onclick="playGame('${game.id}')">Play</button>
+                        <div class="card-footer">
+                            <div class="stats">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:5px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                ${game.visits} Visits
+                            </div>
+                            <button class="play-btn" onclick="playGame('${game.id}')">PLAY</button>
+                        </div>
                     `;
                     list.appendChild(card);
                 });

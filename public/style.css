@@ -1,5 +1,5 @@
 /* ========================
-   GLOBAL/BASE (Clean Dark)
+   GLOBAL CONFIG (Modern UI)
    ======================== */
 :root {
     --bg-main: #14141d; 
@@ -8,350 +8,506 @@
     --accent-primary: #5e81ac; 
     --accent-secondary: #a3be8c; 
     --danger: #bf616a; 
-    --shadow-main: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.5);
+    /* Увеличиваем базовый размер для ПК */
+    --base-font: 18px; 
 }
+
+* { box-sizing: border-box; }
 
 html, body {
-    height: 100%;
-}
-
-body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bg-main);
     color: var(--text-main);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    line-height: 1.6;
+    font-size: var(--base-font);
+    overflow-x: hidden;
 }
 
 /* ========================
-   GLOBAL BUTTONS
-   ======================== */
-button {
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: background-color 0.2s;
-    padding: 10px 15px;
-}
-
-button:hover {
-    filter: brightness(1.2);
-}
-
-/* ========================
-   HEADER & DASHBOARD
+   HEADER (Адаптивный)
    ======================== */
 header {
     background-color: var(--bg-darker);
-    padding: 10px 20px;
+    padding: 1rem 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: var(--shadow-main);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-}
+.header-left { display: flex; align-items: center; gap: 15px; }
 
 .logo {
-    width: 40px;
-    height: 40px;
-    margin-right: 15px;
-    border-radius: 5px;
+    width: 50px; /* Больше на ПК */
+    height: 50px;
+    border-radius: 10px;
+    object-fit: cover;
 }
 
 h1 {
+    font-size: 1.5rem;
     margin: 0;
-    font-size: 24px;
     color: var(--accent-primary);
+    letter-spacing: 1px;
 }
 
-.header-right button {
-    background-color: var(--danger);
+.header-right { display: flex; align-items: center; gap: 20px; }
+
+.user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+
+.logout-btn {
+    background: rgba(191, 97, 106, 0.1);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
+.logout-btn:hover { background: var(--danger); color: white; }
+
+/* ========================
+   DASHBOARD CONTENT
+   ======================== */
 .container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 20px;
+    max-width: 1400px; /* Шире для мониторов */
+    margin: 2rem auto;
+    padding: 0 5%;
 }
 
 h2 {
-    color: var(--accent-secondary);
-    border-bottom: 2px solid var(--bg-darker);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-/* Game Grid */
+/* СЕТКА: 1 колонка на мобилках, 2 на планшетах, 3+ на ПК */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 30px;
 }
 
+/* КАРТОЧКА (Более массивная) */
 .game-card {
-    background-color: var(--bg-darker);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: var(--shadow-main);
-    transition: transform 0.2s;
+    background: linear-gradient(145deg, #1c1c28, #14141d);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 25px;
     display: flex;
     flex-direction: column;
+    min-height: 320px;
+    transition: transform 0.3s, border-color 0.3s;
 }
 
 .game-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
+    border-color: var(--accent-primary);
 }
 
 .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 1rem;
 }
 
-.card-header h3 {
-    margin: 0;
-    color: var(--text-main);
-}
+.card-header h3 { font-size: 1.4rem; margin: 0; }
 
 .online-badge {
-    background-color: var(--accent-secondary);
-    color: var(--bg-darker);
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 12px;
+    background: rgba(163, 190, 140, 0.15);
+    color: var(--accent-secondary);
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.9rem;
     font-weight: bold;
-}
-
-.game-card .author {
-    color: #888;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.game-card .desc {
-    flex-grow: 1;
-    margin-bottom: 15px;
-    font-size: 15px;
-    line-height: 1.4;
-}
-
-.game-card button {
-    margin-top: auto; 
-    background-color: var(--accent-primary);
-    color: white;
-}
-
-/* ========================
-   AUTH FORMS 
-   ======================== */
-.auth-container {
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
+    gap: 6px;
 }
 
-.auth-box {
-    background-color: var(--bg-darker);
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: var(--shadow-main);
-    width: 350px;
-    text-align: center;
+.dot { width: 8px; height: 8px; background: var(--accent-secondary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-secondary); }
+
+.author { color: #81a1c1; font-size: 0.95rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+
+.desc {
+    color: #aeb3bb;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
 }
 
-.auth-box h2 {
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 1.5rem;
+}
+
+.stats { color: #6a7282; font-size: 0.9rem; font-weight: bold; }
+
+.play-btn {
+    background: var(--accent-primary);
+    color: white;
     border: none;
-    color: var(--accent-primary);
-    margin-bottom: 20px;
+    padding: 12px 35px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(94, 129, 172, 0.3);
 }
-
-.auth-box input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #333;
-    border-radius: 5px;
-    background-color: #222;
-    color: var(--text-main);
-    box-sizing: border-box;
-}
-
-.auth-box button {
-    width: 100%;
-    background-color: var(--accent-secondary);
-    color: var(--bg-darker);
-    font-weight: bold;
-}
-
-#auth-msg {
-    color: var(--danger);
-    margin-top: 15px;
-    min-height: 20px;
-}
-
 
 /* ========================
-   GAME PAGE 
+   MOBILE OPTIMIZATION (Fix)
    ======================== */
+@media (max-width: 600px) {
+    :root { --base-font: 16px; }
+    
+    header { padding: 1rem; }
+    
+    .header-right span { display: none; } /* Скрываем "Hello, Player" на узких экранах */
+    
+    .games-grid {
+        grid-template-columns: 1fr; /* Одна карточка во всю ширину */
+        gap: 20px;
+    }
+    
+    .container { margin: 1rem auto; }
+    
+    .play-btn { width: 100%; text-align: center; } /* Кнопка на всю ширину на мобилке */
+    
+    .card-footer { flex-direction: column; gap: 15px; align-items: flex-start; }
+}
 
-body.game-page { 
-    overflow: hidden; 
+/* ========================
+   GAME PAGE & CANVAS
+   ======================== */
+.game-page {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Запрещаем скролл во время игры */
+    background-color: #000;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
     height: 100vh;
-} 
-
-#game-container { 
-    position: relative; 
-    width: 100%; 
-    height: 100%; 
-}
-#gameCanvas { 
-    display: block; 
-    width: 100%; 
-    height: 100%; 
 }
 
-/* СТИЛИЗАЦИЯ КНОПКИ ВЫХОДА */
-#exit-game-btn {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background-color: var(--bg-darker);
-    color: var(--text-main);
-    box-shadow: var(--shadow-main);
-    z-index: 10;
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #2e3440; /* Цвет "пустоты" до загрузки мира */
 }
 
-/* ЧАТ СТИЛИ */
+/* ========================
+   CHAT SYSTEM (Game Overlay)
+   ======================== */
 #chat-box {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 300px; 
-    height: 300px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    border-top-right-radius: 10px;
+    bottom: 30px;
+    left: 20px;
+    width: 320px;
+    max-height: 250px;
+    background: rgba(13, 13, 20, 0.6); /* Полупрозрачный фон */
+    backdrop-filter: blur(10px); /* Эффект стекла */
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    padding: 10px;
-    box-sizing: border-box;
-    font-size: 14px;
-    z-index: 10;
+    padding: 12px;
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: opacity 0.3s;
 }
 
 #chat-messages {
     flex-grow: 1;
     overflow-y: auto;
     margin-bottom: 10px;
+    font-size: 14px;
+    color: #eceff4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 5px;
 }
 
-#chat-messages::-webkit-scrollbar {
-    width: 5px;
-}
-
-#chat-messages::-webkit-scrollbar-thumb {
-    background-color: var(--accent-primary);
-    border-radius: 10px;
-}
+/* Красивый скроллбар чата */
+#chat-messages::-webkit-scrollbar { width: 4px; }
+#chat-messages::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 10px; }
 
 #chat-input {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: none;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--text-main);
-    box-sizing: border-box;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    outline: none;
+    border: 1px solid transparent;
 }
 
-/* MOBILE CONTROLS (Джойстик) */
+#chat-input:focus {
+    border-color: var(--accent-primary);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Сообщения в чате */
+.chat-msg {
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+.chat-msg b { color: var(--accent-primary); }
+
+/* ========================
+   MOBILE CONTROLS (Joystick & Buttons)
+   ======================== */
 #mobile-controls {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    display: none; 
-    z-index: 100;
-    width: calc(100% - 20px);
-    justify-content: space-between;
-    align-items: flex-end;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Пропускаем клики сквозь контейнер */
+    display: none; /* Включится через Media Query */
+    z-index: 200;
 }
 
-.control-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: rgba(94, 129, 172, 0.7); 
-    color: white;
-    font-size: 24px;
-    line-height: 60px;
-    text-align: center;
-    margin: 5px;
-    box-shadow: var(--shadow-main);
-    user-select: none;
-    touch-action: manipulation;
-}
-
-/* СТИЛИ ДЖОЙСТИКА */
-#joystick-area {
-    width: 150px; 
+/* Зона джойстика */
+#joystick-zone {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    width: 150px;
     height: 150px;
-    display: none; /* Скрываем по умолчанию, показываем на мобильных */
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-    touch-action: none;
-    position: relative;
-    left: -20px; 
-    bottom: -20px;
+    pointer-events: auto; /* А джойстик должен ловить касания */
 }
 
 #joystick-base {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.1);
     position: relative;
+    backdrop-filter: blur(5px);
 }
 
 #joystick-stick {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
+    background: var(--accent-primary);
     border-radius: 50%;
-    background-color: var(--accent-primary);
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    transition: none; 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Кнопка Прыжка (и другие действия) */
+.control-btn {
+    position: absolute;
+    bottom: 60px;
+    right: 50px;
+    width: 80px;
+    height: 80px;
+    background: rgba(94, 129, 172, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: white;
+    font-size: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+    backdrop-filter: blur(5px);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
 
-/* Media Query: На мобильных устройствах */
-@media (max-width: 800px) {
+.control-btn:active {
+    transform: scale(0.9);
+    background: rgba(94, 129, 172, 0.8);
+}
+
+/* ========================
+   ADAPTIVITY (Mobile Optimization)
+   ======================== */
+@media (max-width: 1024px) {
     #mobile-controls {
-        display: flex; 
-        justify-content: flex-end; 
-    }
-    
-    #joystick-area {
-        display: flex; /* Показываем джойстик слева */
+        display: block; /* Показываем на мобилках и планшетах */
     }
 
-    /* ФИКС ЧАТА: Поднимаем его выше контролов */
+    /* На мобилке чат чуть выше, чтобы не перекрывать джойстик */
     #chat-box {
-        width: 40%; 
-        bottom: 120px; /* Поднимаем чат выше, чтобы не конфликтовал с джойстиком */
-        left: 0;
-        height: 250px; 
-        border-radius: 0 10px 0 0; 
+        bottom: 220px; 
+        left: 15px;
+        width: 240px;
+        max-height: 150px;
+        background: rgba(13, 13, 20, 0.4);
+    }
+}
+
+/* Горизонтальный режим для мобилок */
+@media (max-height: 500px) {
+    #chat-box {
+        top: 10px;
+        bottom: auto;
+        left: auto;
+        right: 10px;
+        width: 200px;
+    }
+}
+
+/* ========================
+   AUTH PAGES STYLES
+   ======================== */
+.auth-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #1a1a26 0%, #0d0d14 100%);
+    margin: 0;
+}
+
+.auth-box {
+    background: #1c1c28;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.auth-header {
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.auth-box h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 24px;
+}
+
+.auth-box input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    color: white;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.auth-box input:focus {
+    border-color: var(--accent-primary);
+    background: rgba(0,0,0,0.3);
+}
+
+.primary-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent-primary);
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+/* Разделитель "или" */
+.divider {
+    margin: 25px 0;
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.divider span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1c1c28;
+    padding: 0 15px;
+    color: #6a7282;
+    font-size: 14px;
+}
+
+/* Кнопка Google */
+.google-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: #333;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    transition: 0.2s;
+}
+
+.google-btn:hover {
+    background: #f1f1f1;
+    transform: translateY(-2px);
+}
+
+.error-msg {
+    color: var(--danger);
+    font-size: 14px;
+    margin-top: 15px;
+    min-height: 20px;
+}
+
+.small-link {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #6a7282;
+}
+
+.small-link a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 30px 20px;
+        max-width: 90%;
     }
 }
