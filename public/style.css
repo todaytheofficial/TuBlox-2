@@ -12,7 +12,9 @@
     --base-font: 18px; 
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 html, body {
     margin: 0;
@@ -38,12 +40,38 @@ header {
     z-index: 1000;
 }
 
-.header-left { display: flex; align-items: center; gap: 15px; }
-.logo { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; }
-h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing: 1px; }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-.header-right { display: flex; align-items: center; gap: 20px; }
-.user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--accent-primary);
+    letter-spacing: 1px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
 
 .logout-btn {
     background: rgba(191, 97, 106, 0.1);
@@ -54,11 +82,27 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     cursor: pointer;
     transition: 0.2s;
 }
-.logout-btn:hover { background: var(--danger); color: white; }
 
-.container { max-width: 1400px; margin: 2rem auto; padding: 0 5%; }
-.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; }
+.logout-btn:hover {
+    background: var(--danger);
+    color: white;
+}
 
+.container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 5%;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+/* ========================
+   GAME CARD STYLES
+   ======================== */
 .game-card {
     background: linear-gradient(145deg, #1c1c28, #14141d);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -69,7 +113,11 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     min-height: 320px;
     transition: transform 0.3s, border-color 0.3s;
 }
-.game-card:hover { transform: translateY(-10px); border-color: var(--accent-primary); }
+
+.game-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--accent-primary);
+}
 
 .game-avatar {
     max-width: 100%;
@@ -89,8 +137,16 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-bottom: 15px; /* Added spacing */
 }
-.dot { width: 8px; height: 8px; background: var(--accent-secondary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-secondary); }
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-secondary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent-secondary);
+}
 
 .play-btn {
     background: var(--accent-primary);
@@ -100,17 +156,80 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     border-radius: 10px;
     font-weight: 800;
     cursor: pointer;
+    margin-top: auto; /* Push to bottom */
+    transition: background 0.2s;
+}
+
+.play-btn:hover {
+    background: #4c6a91; /* Slightly darker on hover */
+}
+
+/* ========================
+   STUDIO & ACTION BUTTONS
+   ======================== */
+.studio-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 50px;
+    width: 180px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.studio-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.studio-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
+}
+
+.customize-btn {
+    background: #b48ead; /* Фиолетовый */
+    color: #2e3440;
+}
+
+.studio-modal-btn {
+    background: #a3be8c; /* Зеленый */
+    color: #2e3440;
 }
 
 /* ========================
    GAME PAGE & CANVAS
    ======================== */
-.game-page { margin: 0; padding: 0; overflow: hidden; background-color: #000; }
-#game-container { position: relative; width: 100vw; height: 100vh; }
-#gameCanvas { display: block; width: 100%; height: 100%; background-color: #2e3440; }
+.game-page {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #2e3440;
+}
 
 /* ========================
-   CHAT SYSTEM (FIXED)
+   CHAT SYSTEM
    ======================== */
 #chat-box {
     position: absolute;
@@ -140,6 +259,15 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     gap: 5px;
 }
 
+/* Custom Scrollbar for Chat */
+#chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+#chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
 #chat-input {
     width: 100%;
     padding: 10px;
@@ -150,7 +278,9 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     outline: none;
 }
 
-#chat-input:focus { border-color: var(--accent-primary); }
+#chat-input:focus {
+    border-color: var(--accent-primary);
+}
 
 .chat-hidden {
     opacity: 0 !important;
@@ -184,97 +314,130 @@ h1 { font-size: 1.5rem; margin: 0; color: var(--accent-primary); letter-spacing:
     justify-content: center;
     transition: 0.2s;
 }
-.ui-btn:hover { background: var(--accent-primary); transform: scale(1.1); }
+
+.ui-btn:hover {
+    background: var(--accent-primary);
+    transform: scale(1.1);
+}
 
 /* ========================
    MOBILE CONTROLS
    ======================== */
 #mobile-controls {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
     z-index: 200;
     display: none; /* Скрыто по умолчанию на ПК */
 }
 
-#joystick-zone { position: absolute; bottom: 50px; left: 50px; width: 120px; height: 120px; pointer-events: auto; }
-#joystick-base { width: 100%; height: 100%; background: rgba(255,255,255,0.1); border-radius: 50%; position: relative; border: 2px solid rgba(255,255,255,0.2); }
-#joystick-stick { width: 50px; height: 50px; background: var(--accent-primary); border-radius: 50%; position: absolute; top: 35px; left: 35px; border: 2px solid white; }
+#joystick-zone {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    width: 120px;
+    height: 120px;
+    pointer-events: auto;
+}
+
+#joystick-base {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#joystick-stick {
+    width: 50px;
+    height: 50px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    position: absolute;
+    top: 35px;
+    left: 35px;
+    border: 2px solid white;
+}
 
 .control-btn {
-    position: absolute; bottom: 60px; right: 50px; width: 70px; height: 70px;
-    background: rgba(94, 129, 172, 0.4); border-radius: 50%; border: 2px solid white;
-    color: white; font-size: 30px; display: flex; align-items: center; justify-content: center;
-    pointer-events: auto; user-select: none;
+    position: absolute;
+    bottom: 60px;
+    right: 50px;
+    width: 70px;
+    height: 70px;
+    background: rgba(94, 129, 172, 0.4);
+    border-radius: 50%;
+    border: 2px solid white;
+    color: white;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    user-select: none;
 }
 
 /* ========================
-   ADAPTIVITY & AUTH
+   AUTH SCREEN
    ======================== */
-@media (max-width: 1024px) {
-    #mobile-controls { display: block; }
-    #chat-box { bottom: 200px; left: 15px; width: 260px; }
-}
-
-@media (max-width: 600px) {
-    .header-right span { display: none; }
-    .games-grid { grid-template-columns: 1fr; }
-}
-
 .auth-body {
-    display: flex; justify-content: center; align-items: center; min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     background: radial-gradient(circle at center, #1a1a26 0%, #0d0d14 100%);
 }
 
 .auth-box {
-    background: #1c1c28; padding: 40px; border-radius: 20px; width: 90%; max-width: 400px;
-    text-align: center; border: 1px solid rgba(255,255,255,0.05);
+    background: #1c1c28;
+    padding: 40px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .auth-box input {
-    width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
 }
 
-/* Кнопка создания игры */
-.studio-btn {
-    background: linear-gradient(135deg, var(--accent-secondary) 0%, #8eb078 100%);
-    color: #14141d; /* Темный текст для контраста с зеленой кнопкой */
-    border: none;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 15px rgba(163, 190, 140, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+/* ========================
+   ADAPTIVITY (MEDIA QUERIES)
+   ======================== */
+@media (max-width: 1024px) {
+    #mobile-controls {
+        display: block;
+    }
+    #chat-box {
+        bottom: 200px;
+        left: 15px;
+        width: 260px;
+    }
 }
 
-.studio-btn svg {
-    transition: transform 0.3s ease;
-}
-
-.studio-btn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(163, 190, 140, 0.5);
-    background: linear-gradient(135deg, #b4cf9e 0%, #a3be8c 100%);
-}
-
-.studio-btn:active {
-    transform: translateY(0) scale(0.98);
-}
-
-.studio-btn:hover svg {
-    transform: rotate(90deg);
-}
-
-/* Адаптивность для мобилок */
 @media (max-width: 600px) {
+    /* Header adjustments */
+    .header-right span {
+        display: none;
+    }
+    
+    /* Grid adjustments */
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Button adjustments */
     .studio-btn {
         width: 100%;
         justify-content: center;
