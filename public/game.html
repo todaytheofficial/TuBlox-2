@@ -3,24 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TuBlox 2 - Игра</title>
+    <title>TuBlox 2 - Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="game-page">
     <div id="game-container">
-        <button id="exit-game-btn" class="exit-btn">← Выйти</button>
+        <button id="exit-game-btn" class="exit-btn">← Exit</button>
         
         <canvas id="gameCanvas"></canvas>
 
         <div id="chat-box"> 
             <div id="chat-messages"></div>
-            <input type="text" id="chat-input" placeholder="Чат...">
+            <input type="text" id="chat-input" placeholder="Chat...">
         </div>
 
         <div id="mobile-controls">
-            <div id="btn-jump" class="control-btn">↑</div>
-            <div id="btn-left" class="control-btn">←</div>
-            <div id="btn-right" class="control-btn">→</div>
+            <div id="joystick-area">
+                <div id="joystick-base">
+                    <div id="joystick-stick"></div>
+                </div>
+            </div>
+            
+            <div id="btn-jump" class="control-btn action-btn">↑</div>
+            
+            <div id="build-status" class="control-btn action-btn" style="background-color: rgba(0, 0, 0, 0.4); margin-left: 10px;">B</div>
         </div>
     </div>
     

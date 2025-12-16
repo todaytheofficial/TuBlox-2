@@ -233,7 +233,7 @@ body.game-page {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 300px; /* Фиксированная ширина на десктопе */
+    width: 300px; 
     height: 300px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
@@ -271,17 +271,16 @@ body.game-page {
     box-sizing: border-box;
 }
 
-/* MOBILE CONTROLS (ФИКС) */
+/* MOBILE CONTROLS (Джойстик) */
 #mobile-controls {
     position: absolute;
     bottom: 10px;
     left: 10px;
     display: none; 
     z-index: 100;
-    /* Используем Flexbox для лучшего расположения */
-    display: flex; 
-    justify-content: space-between;
     width: calc(100% - 20px);
+    justify-content: space-between;
+    align-items: flex-end;
 }
 
 .control-btn {
@@ -299,29 +298,58 @@ body.game-page {
     touch-action: manipulation;
 }
 
-/* Расположение кнопок */
-#btn-left {
-    order: 1; 
+/* СТИЛИ ДЖОЙСТИКА */
+#joystick-area {
+    width: 150px; 
+    height: 150px;
+    display: none; /* Скрываем по умолчанию, показываем на мобильных */
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    touch-action: none;
+    position: relative;
+    left: -20px; 
+    bottom: -20px;
 }
 
-#btn-right {
-    order: 2; 
-    margin-left: 10px; 
+#joystick-base {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    position: relative;
 }
 
-#btn-jump {
-    order: 3; 
-    margin-left: auto; /* Сдвигает кнопку прыжка максимально вправо */
+#joystick-stick {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--accent-primary);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: none; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Media Query: Показываем кнопки на маленьких экранах и настраиваем чат */
+
+/* Media Query: На мобильных устройствах */
 @media (max-width: 800px) {
     #mobile-controls {
-        display: flex; /* Делаем видимыми */
+        display: flex; 
+        justify-content: flex-end; 
     }
+    
+    #joystick-area {
+        display: flex; /* Показываем джойстик слева */
+    }
+
+    /* ФИКС ЧАТА: Поднимаем его выше контролов */
     #chat-box {
-        width: 40%; /* Чат занимает меньше места по ширине */
-        bottom: 80px; /* Поднимаем чат выше, чтобы избежать конфликта с кнопками */
+        width: 40%; 
+        bottom: 120px; /* Поднимаем чат выше, чтобы не конфликтовал с джойстиком */
         left: 0;
         height: 250px; 
         border-radius: 0 10px 0 0; 
