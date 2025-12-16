@@ -1,344 +1,230 @@
+// studio/editor.js
+
 const canvas = document.getElementById('studioCanvas');
 const ctx = canvas.getContext('2d');
-const urlParams = new URLSearchParams(window.location.search);
-const gameId = urlParams.get('id');
+const propsPanel = document.getElementById('props-panel');
+const contextMenu = document.getElementById('context-menu');
 
-const GRID_SIZE = 50; // Размер сетки
-const MIN_SIZE = 20;  // Минимальный размер блока
-const SNAP = 5;       // Привязка при перемещении/ресайзе
-
-let levelData = [];
 let currentTool = 'select';
-let selectedBlock = null;
-let isDragging = false;
-let isResizing = false;
-let dragStartX, dragStartY; // Координаты клика
-let dragOffsetX, dragOffsetY; // Смещение курсора внутри блока
-let camX = 0, camY = 0;
+let selectedObject = null;
+let lastId = 0;
 
-// --- ИНИЦИАЛИЗАЦИЯ ---
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resizeCanvas() {
+    canvas.width = window.innerWidth - 220; // Учитываем панель свойств
+    canvas.height = window.innerHeight - 60; // Учитываем тулбар
 }
-window.addEventListener('resize', resize);
-resize();
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-async function loadLevel() {
-    if (!gameId) {
-        alert("Ошибка: Не указан ID игры.");
-        return;
-    }
+// --- ИНСТРУМЕНТЫ И СОЗДАНИЕ БЛОКОВ ---
+
+function setTool(toolName) {
+    // Снимаем активный класс со всех кнопок
+    document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
     
-    const response = await fetch(`/api/get-level/${gameId}`);
-    const data = await response.json();
+    // Устанавливаем новый инструмент
+    currentTool = toolName;
+    selectedObject = null;
+    updatePropertiesPanel();
     
-    if (data.success) {
-        levelData = data.level;
-        // Перемещаем камеру, чтобы видеть спавн
-        const spawn = levelData.find(b => b.type === 'spawn');
-        if (spawn) {
-            camX = canvas.width / 2 - spawn.x;
-            camY = canvas.height / 2 - spawn.y;
-        }
-        loop();
-    } else {
-        alert(data.message);
-    }
-}
-
-// --- УПРАВЛЕНИЕ ИНСТРУМЕНТАМИ ---
-
-document.querySelectorAll('.tool-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Сброс активного класса
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTool = btn.dataset.tool;
-        selectedBlock = null; // Сбрасываем выбор при смене инструмента
-        updatePropertiesPanel();
-    });
-});
-
-document.addEventListener('keydown', (e) => {
-    // Горячие клавиши
-    const toolMap = { 'v': 'select', 'r': 'resize', 'b': 'block-default', 's': 'block-spawn', 'x': 'delete' };
-    const toolId = toolMap[e.key.toLowerCase()];
-    
-    if (toolId) {
-        document.getElementById(`tool-${toolId}`).click();
-    }
-    
-    // Удаление выбранного блока
-    if (e.key === 'Delete' && selectedBlock) {
-        const index = levelData.indexOf(selectedBlock);
-        if (index !== -1) {
-            levelData.splice(index, 1);
-            selectedBlock = null;
-            updatePropertiesPanel();
-        }
-    }
-});
-
-
-// --- ВЗАИМОДЕЙСТВИЕ МЫШЬЮ ---
-
-canvas.addEventListener('mousedown', (e) => {
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    const worldX = e.clientX - camX;
-    const worldY = e.clientY - camY;
-
-    // 1. Поиск блока под курсором
-    const clickedBlock = levelData.find(b => 
-        worldX >= b.x && worldX <= b.x + b.w &&
-        worldY >= b.y && worldY <= b.y + b.h
-    );
-
-    if (currentTool === 'select') {
-        selectedBlock = clickedBlock;
-        if (selectedBlock) {
-            isDragging = true;
-            // Смещение курсора внутри блока
-            dragOffsetX = worldX - selectedBlock.x;
-            dragOffsetY = worldY - selectedBlock.y;
-            updatePropertiesPanel();
-        }
-    } else if (currentTool === 'resize') {
-        // Логика ресайза (только если кликнули на блок)
-        selectedBlock = clickedBlock;
-        if (selectedBlock) {
-            isResizing = true;
-            updatePropertiesPanel();
-        }
-    } else if (currentTool.startsWith('block-')) {
-        // Создание блока (Spawn Block только один!)
-        if (currentTool === 'block-spawn' && levelData.some(b => b.type === 'spawn')) {
-             alert("На уровне может быть только один Spawn Block!");
-             return;
-        }
-
-        const newBlock = {
-            x: Math.round(worldX / GRID_SIZE) * GRID_SIZE,
-            y: Math.round(worldY / GRID_SIZE) * GRID_SIZE,
-            w: GRID_SIZE,
-            h: GRID_SIZE,
-            type: currentTool === 'block-spawn' ? 'spawn' : 'default',
-            color: currentTool === 'block-spawn' ? '#bf616a' : '#5e81ac' 
-        };
-        levelData.push(newBlock);
-        selectedBlock = newBlock;
-        updatePropertiesPanel();
-        isResizing = true; // Сразу переходим в режим изменения размера
-    } else if (currentTool === 'delete') {
-         if (clickedBlock) {
-             const index = levelData.indexOf(clickedBlock);
-             if (index !== -1) levelData.splice(index, 1);
-             selectedBlock = null;
-             updatePropertiesPanel();
+    // Назначаем активный класс кнопке, если это не dropdown
+    const toolButton = document.getElementById('tool-' + toolName.split('-')[1]) || document.getElementById('tool-select');
+    if (toolButton) {
+         if (toolName.startsWith('block-')) {
+            // Если выбран блок из dropdown, подсвечиваем кнопку "Add Block"
+            document.getElementById('tool-block-dropdown').classList.add('active');
+         } else {
+             toolButton.classList.add('active');
          }
     }
-});
+}
 
-canvas.addEventListener('mousemove', (e) => {
-    const worldX = e.clientX - camX;
-    const worldY = e.clientY - camY;
-
-    if (isDragging && selectedBlock) {
-        // Инструмент "Выбрать/Двигать"
-        let newX = worldX - dragOffsetX;
-        let newY = worldY - dragOffsetY;
-        
-        // Привязка к сетке (Grid Snapping)
-        selectedBlock.x = Math.round(newX / SNAP) * SNAP;
-        selectedBlock.y = Math.round(newY / SNAP) * SNAP;
-        updatePropertiesPanel(true);
-    } else if (isResizing && selectedBlock) {
-        // Инструмент "Масштабировать"
-        let newW = Math.max(MIN_SIZE, worldX - selectedBlock.x);
-        let newH = Math.max(MIN_SIZE, worldY - selectedBlock.y);
-        
-        // Привязка к сетке
-        selectedBlock.w = Math.round(newW / SNAP) * SNAP;
-        selectedBlock.h = Math.round(newH / SNAP) * SNAP;
-        updatePropertiesPanel(true);
-    } else {
-        // Движение камерой (колесо мыши или средняя кнопка)
-        if (e.buttons === 4 || e.buttons === 1 && currentTool === 'select' && !selectedBlock) {
-            camX += e.clientX - dragStartX;
-            camY += e.clientY - dragStartY;
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-        }
+// Привязка кнопок тулбара
+document.querySelectorAll('.toolbar > button').forEach(btn => {
+    if (btn.dataset.tool) {
+        btn.addEventListener('click', () => setTool(btn.dataset.tool));
     }
 });
 
-canvas.addEventListener('mouseup', () => {
-    isDragging = false;
-    isResizing = false;
-    updatePropertiesPanel(); // Обновить окончательные значения
+
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const worldX = x; 
+    const worldY = y; 
+
+    const clickedBlock = gameLevel.find(block => 
+        worldX >= block.x && worldX <= block.x + block.w &&
+        worldY >= block.y && worldY <= block.y + block.h
+    );
+
+    if (currentTool.startsWith('block-')) {
+        const type = currentTool.split('-')[1];
+        lastId++;
+        const newBlock = createNewBlock(type, worldX - 50, worldY - 25);
+        
+        // Заменяем старый спавн, если создан новый
+        if (type === 'spawn') {
+            const oldSpawn = gameLevel.find(b => b.type === 'spawn');
+            if (oldSpawn) gameLevel = gameLevel.filter(b => b.type !== 'spawn');
+        }
+
+        gameLevel.push(newBlock);
+        selectedObject = newBlock;
+        updatePropertiesPanel();
+        setTool('select'); // Возврат к курсору
+    } else if (clickedBlock) {
+        selectedObject = clickedBlock;
+        updatePropertiesPanel();
+    } else {
+        selectedObject = null;
+        updatePropertiesPanel();
+    }
+    
 });
 
+function createNewBlock(type, x, y) {
+    const commonProps = {
+        id: `b-${Date.now()}-${lastId}`,
+        x: Math.round(x / 20) * 20, // Привязка к сетке 20x20
+        y: Math.round(y / 20) * 20,
+        w: 100,
+        h: 50,
+        opacity: 1,
+        collision: true
+    };
+    
+    switch (type) {
+        case 'floor':
+            return { ...commonProps, type: 'floor', color: '#4c566a' };
+        case 'checkpoint':
+            return { ...commonProps, type: 'checkpoint', color: '#ebcb8b', w: 10, h: 100, collision: false };
+        case 'kill':
+            return { ...commonProps, type: 'kill', color: '#bf616a', collision: false };
+        case 'finish':
+            return { ...commonProps, type: 'finish', color: '#a3be8c', collision: false };
+        case 'spawn':
+            return { ...commonProps, type: 'spawn', color: '#81a1c1', w: 30, h: 60, collision: false };
+        default:
+            return { ...commonProps, type: 'floor', color: '#4c566a' };
+    }
+}
 
 // --- ПАНЕЛЬ СВОЙСТВ ---
 
-const propInputs = {
-    x: document.getElementById('prop-x'),
-    y: document.getElementById('prop-y'),
-    w: document.getElementById('prop-w'),
-    h: document.getElementById('prop-h'),
-    color: document.getElementById('prop-color')
-};
+function updatePropertiesPanel() {
+    if (selectedObject) {
+        propsPanel.style.display = 'block';
+        document.getElementById('prop-id').innerText = selectedObject.id;
+        document.getElementById('prop-type').innerText = selectedObject.type;
+        
+        document.getElementById('prop-x').value = selectedObject.x;
+        document.getElementById('prop-y').value = selectedObject.y;
+        document.getElementById('prop-w').value = selectedObject.w;
+        document.getElementById('prop-h').value = selectedObject.h;
+        document.getElementById('prop-color').value = selectedObject.color;
+        document.getElementById('prop-opacity').value = selectedObject.opacity;
+        document.getElementById('prop-collision').checked = selectedObject.collision;
 
-function updatePropertiesPanel(duringDrag = false) {
-    const panel = document.getElementById('props-panel');
-    
-    if (!selectedBlock) {
-        panel.style.opacity = 0.5;
-        panel.style.pointerEvents = 'none';
-        document.getElementById('prop-id').innerText = 'None';
-        document.getElementById('prop-type').innerText = 'None';
-        return;
-    }
-    
-    panel.style.opacity = 1;
-    panel.style.pointerEvents = 'auto';
+        // Отключение нелогичных свойств для Spawn и Checkpoint
+        const isTrigger = ['spawn', 'checkpoint', 'kill', 'finish'].includes(selectedObject.type);
+        document.getElementById('prop-collision').disabled = isTrigger;
+        if (isTrigger) selectedObject.collision = false;
 
-    document.getElementById('prop-id').innerText = selectedBlock.id || 'New';
-    document.getElementById('prop-type').innerText = selectedBlock.type.toUpperCase();
-
-    // Обновляем поля ввода
-    if (!duringDrag) {
-        propInputs.x.value = Math.round(selectedBlock.x);
-        propInputs.y.value = Math.round(selectedBlock.y);
-        propInputs.w.value = Math.round(selectedBlock.w);
-        propInputs.h.value = Math.round(selectedBlock.h);
-        propInputs.color.value = selectedBlock.color || '#5e81ac';
+    } else {
+        propsPanel.style.display = 'none';
     }
 }
 
-// Слушатели для ручного ввода
-Object.keys(propInputs).forEach(key => {
-    propInputs[key].addEventListener('change', (e) => {
-        if (selectedBlock) {
-            // Преобразование в число для W, H, X, Y
-            if (key !== 'color') {
-                selectedBlock[key] = parseFloat(e.target.value);
-            } else {
-                selectedBlock[key] = e.target.value;
-            }
-        }
-    });
+// Привязка событий к полям ввода
+propsPanel.addEventListener('input', (e) => {
+    if (!selectedObject) return;
+
+    switch (e.target.id) {
+        case 'prop-x': selectedObject.x = Number(e.target.value); break;
+        case 'prop-y': selectedObject.y = Number(e.target.value); break;
+        case 'prop-w': selectedObject.w = Number(e.target.value); break;
+        case 'prop-h': selectedObject.h = Number(e.target.value); break;
+        case 'prop-color': selectedObject.color = e.target.value; break;
+        case 'prop-opacity': selectedObject.opacity = Number(e.target.value); break;
+        case 'prop-collision': 
+            // Только если поле не отключено
+            if (!e.target.disabled) selectedObject.collision = e.target.checked; 
+            break;
+    }
 });
 
+// --- КОНТЕКСТНОЕ МЕНЮ И УДАЛЕНИЕ ---
 
-// --- ЦИКЛ РЕНДЕРИНГА ---
+canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const clickedBlock = gameLevel.find(block => 
+        x >= block.x && x <= block.x + block.w &&
+        y >= block.y && y <= block.y + block.h
+    );
 
-function drawGrid() {
-    ctx.strokeStyle = '#444';
-    ctx.lineWidth = 0.5;
-
-    // Определение видимой области
-    const startX = Math.floor((-camX) / GRID_SIZE) * GRID_SIZE;
-    const endX = startX + canvas.width + GRID_SIZE;
-    const startY = Math.floor((-camY) / GRID_SIZE) * GRID_SIZE;
-    const endY = startY + canvas.height + GRID_SIZE;
-
-    // Рисуем вертикальные линии
-    for (let x = startX; x < endX; x += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(x + camX, 0);
-        ctx.lineTo(x + camX, canvas.height);
-        ctx.stroke();
+    if (clickedBlock) {
+        selectedObject = clickedBlock;
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = `${e.clientX}px`;
+        contextMenu.style.top = `${e.clientY}px`;
+    } else {
+        selectedObject = null;
+        contextMenu.style.display = 'none';
     }
+});
 
-    // Рисуем горизонтальные линии
-    for (let y = startY; y < endY; y += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(0, y + camY);
-        ctx.lineTo(canvas.width, y + camY);
-        ctx.stroke();
+document.addEventListener('click', () => {
+    contextMenu.style.display = 'none';
+});
+
+function focusOnObject() {
+    if (selectedObject) {
+        updatePropertiesPanel();
     }
 }
+
+function deleteObject() {
+    if (selectedObject && selectedObject.type !== 'floor' && selectedObject.type !== 'spawn') {
+        gameLevel = gameLevel.filter(b => b.id !== selectedObject.id);
+        selectedObject = null;
+        updatePropertiesPanel();
+        contextMenu.style.display = 'none';
+    } else {
+        alert('Cannot delete this crucial block.');
+    }
+}
+
+// --- ОСНОВНОЙ ЦИКЛ ОТРИСОВКИ ---
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    ctx.translate(camX, camY);
     
-    drawGrid();
-
-    // Рисуем блоки
-    levelData.forEach(block => {
-        ctx.fillStyle = block.color || '#5e81ac';
+    gameLevel.forEach(block => {
+        // Установка прозрачности
+        ctx.globalAlpha = block.opacity || 1;
         
-        // Визуальное отличие Spawn Block
-        if (block.type === 'spawn') {
-            ctx.fillStyle = '#bf616a';
-            ctx.globalAlpha = 0.7; // Сделать полупрозрачным
-            ctx.fillRect(block.x, block.y, block.w, block.h);
-            ctx.globalAlpha = 1.0;
-            
-            // Нарисуем "человечка" для наглядности спавна
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 30px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('👤', block.x + block.w / 2, block.y + block.h / 2 + 10);
-            
-        } else {
-            // Обычный блок
-            ctx.fillRect(block.x, block.y, block.w, block.h);
-        }
+        ctx.fillStyle = block.color || '#333';
+        ctx.fillRect(block.x, block.y, block.w, block.h);
 
-        // Выделение выбранного блока
-        if (selectedBlock === block) {
-            ctx.strokeStyle = 'yellow';
-            ctx.lineWidth = 3;
+        // Обводка для выбранного объекта
+        if (selectedObject && selectedObject.id === block.id) {
+            ctx.strokeStyle = '#ebcb8b';
+            ctx.lineWidth = 4;
             ctx.strokeRect(block.x, block.y, block.w, block.h);
         }
     });
 
-    ctx.restore();
+    ctx.globalAlpha = 1; // Возвращаем прозрачность
 }
 
 function loop() {
     draw();
     requestAnimationFrame(loop);
 }
-
-
-// --- СОХРАНЕНИЕ ---
-
-async function saveMap() {
-    const levelName = prompt("Введите новое название для игры (Оставьте пустым, чтобы не менять):");
-    const gameDetails = {};
-    if (levelName) {
-        gameDetails.name = levelName;
-    }
-    
-    // Очищаем блоки от лишних свойств перед отправкой
-    const cleanedLevel = levelData.map(b => ({
-        x: Math.round(b.x), y: Math.round(b.y), 
-        w: Math.round(b.w), h: Math.round(b.h), 
-        type: b.type, color: b.color 
-    }));
-    
-    const response = await fetch(`/api/save-level/${gameId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ levelData: cleanedLevel, gameDetails })
-    });
-    
-    const data = await response.json();
-    if (data.success) {
-        alert("Уровень успешно сохранен и опубликован!");
-    } else {
-        alert("Ошибка сохранения: " + data.message);
-    }
-}
-
-window.saveMap = saveMap; // Делаем функцию доступной из HTML
-
-loadLevel(); // Запускаем загрузку уровня

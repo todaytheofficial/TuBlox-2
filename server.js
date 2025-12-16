@@ -9,29 +9,31 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 const PORT = process.env.PORT || 3000;
-const BOT_TOKEN = '8331842172:AAHV5pckoH8afnmF2-O03pke-2ck52W51H4'; 
+const BOT_TOKEN = '8331842172:AAHV5pckoH8afnmF2-O03pke-2ck52W51H4';
 
 // Настройка сервера
-app.use(express.static(path.join(__dirname, 'public'))); 
-app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// УВЕЛИЧЕН ЛИМИТ ТЕЛА ЗАПРОСА (Fix для 413 Payload Too Large)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 /* ========================
     БАЗА ДАННЫХ (В ПАМЯТИ)
    ======================== */
-const users = {}; 
+const users = {};
 let gamesData = [
-    { id: 'parkour-default', name: 'Начальный уровень', author: 'TuBlox', desc: 'Добро пожаловать!', online: 0, visits: 0 }
+    { id: 'parkour-default', name: 'Начальный уровень', author: 'TuBlox', desc: 'Добро пожаловать!', online: 0, visits: 0, avatar: '', published: true }
 ];
 
 let gameLevels = {
     'parkour-default': [
-        { x: 0, y: 500, w: 2000, h: 50, type: 'floor', color: '#4c566a' },
-        { x: 100, y: 440, w: 30, h: 60, type: 'spawn', color: '#bf616a' }
+        { x: 0, y: 500, w: 2000, h: 50, type: 'floor', color: '#4c566a', opacity: 1, collision: true, code: [] }
     ]
 };
 
-// Комнаты для игроков (хранят текущие блоки и координаты игроков)
-const activeGames = {}; 
+// Комнаты для игроков
+const activeGames = {};
 
 /* ========================
     МАРШРУТЫ (PAGES)
@@ -62,7 +64,7 @@ app.post('/auth/telegram', (req, res) => {
 
 app.post('/api/register', (req, res) => {
     const { username, password } = req.body;
-    if (users[username]) return res.status(409).json({ success: false, message: 'Занят' });
+    if (users[username]) return res.status(409).json({ success: false, message: 'Username is taken' });
     users[username] = { password, uid: `u_${Date.now()}` };
     res.json({ success: true });
 });
@@ -80,43 +82,70 @@ app.post('/api/login', (req, res) => {
 
 // Создать новую игру
 app.post('/api/create-game', (req, res) => {
-    const { name, author } = req.body;
+    const username = req.headers['x-username'];
+    // Сообщение очищено
+    if (!username || !users[username]) return res.status(401).json({ success: false, message: 'Unauthorized' }); 
+
+    const { name } = req.body;
     const id = `game-${Date.now()}`;
-    
-    const newGame = { id, name, author, desc: "Создано в Studio", online: 0, visits: 0 };
+
+    const newGame = { id, name, author: username, desc: "Created in Studio", online: 0, visits: 0, avatar: '', published: false };
     gamesData.push(newGame);
-    
+
     // Базовый шаблон уровня
     gameLevels[id] = [
-        { x: 0, y: 500, w: 1000, h: 50, type: 'floor', color: '#4c566a' },
-        { x: 50, y: 440, w: 30, h: 60, type: 'spawn', color: '#bf616a' }
+        { x: 0, y: 500, w: 1000, h: 50, type: 'floor', color: '#4c566a', opacity: 1, collision: true, code: [] },
+        { x: 50, y: 440, w: 30, h: 60, type: 'spawn', color: '#bf616a', opacity: 1, collision: false, code: [] }
     ];
-    
+
     res.json({ success: true, id });
+});
+
+// Получить список игр пользователя
+app.get('/api/my-games', (req, res) => {
+    const username = req.headers['x-username'];
+    if (!username || !users[username]) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const myGames = gamesData.filter(g => g.author === username);
+    res.json({ success: true, games: myGames });
 });
 
 // Получить данные для редактора
 app.get('/api/get-level/:id', (req, res) => {
+    const username = req.headers['x-username'];
+    if (!username || !users[username]) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const game = gamesData.find(g => g.id === req.params.id);
+    // Сообщение очищено
+    if (!game || game.author !== username) return res.status(403).json({ success: false, message: 'Forbidden: You do not own this game.' });
+
     const level = gameLevels[req.params.id];
-    if (level) res.json({ success: true, level });
+    if (level) res.json({ success: true, level, gameDetails: { name: game.name, desc: game.desc, avatar: game.avatar } });
     else res.status(404).json({ success: false });
 });
 
 // Сохранить изменения из Studio
 app.post('/api/save-level/:id', (req, res) => {
-    const { levelData, gameDetails } = req.body;
-    const gameId = req.params.id;
+    const username = req.headers['x-username'];
+    if (!username || !users[username]) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-    if (gameLevels[gameId]) {
-        gameLevels[gameId] = levelData;
-        const game = gamesData.find(g => g.id === gameId);
-        if (game && gameDetails.name) game.name = gameDetails.name;
-        
-        io.emit('update-dashboard', gamesData); // Обновить список у всех
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ success: false });
+    const gameId = req.params.id;
+    const game = gamesData.find(g => g.id === gameId);
+    // Сообщение очищено
+    if (!game || game.author !== username) return res.status(403).json({ success: false, message: 'Forbidden: You do not own this game.' });
+
+    const { levelData, gameDetails } = req.body;
+
+    gameLevels[gameId] = levelData;
+    if (gameDetails) {
+        if (gameDetails.name) game.name = gameDetails.name;
+        if (gameDetails.desc) game.desc = gameDetails.desc;
+        if (gameDetails.avatar) game.avatar = gameDetails.avatar;
+        game.published = true; // Теперь опубликована
     }
+
+    io.emit('update-dashboard', gamesData); // Обновить список у всех
+    res.json({ success: true });
 });
 
 /* ========================
@@ -170,7 +199,7 @@ io.on('connection', (socket) => {
     });
 
     // Оповещение других
-    io.to(gameId).emit('player-data', room.players);
+    socket.to(gameId).emit('player-data', room.players);
 
     // Обработка перемещения
     socket.on('player-update', (data) => {

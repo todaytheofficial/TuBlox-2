@@ -5,6 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TuBlox - Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Стили для модального окна студии */
+        #studio-modal {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); z-index: 2000;
+        }
+        .modal-content {
+            background: #2e3440; width: 80%; max-width: 700px;
+            margin: 5% auto; padding: 25px; border-radius: 10px;
+            color: white; max-height: 90vh; overflow-y: auto;
+        }
+        .my-games-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .my-game-card { background: #4c566a; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .my-game-card:hover { background: #5e81ac; }
+        .my-game-card h4 { margin: 0 0 5px 0; font-size: 16px; }
+        .my-game-card small { display: block; color: #d8dee9; font-size: 12px; }
+        .status-badge { float: right; font-size: 10px; padding: 2px 5px; border-radius: 4px; }
+        .public { background: #a3be8c; color: #2e3440; }
+        .private { background: #bf616a; color: white; }
+    </style>
 </head>
 <body>
     <header>
@@ -25,39 +46,112 @@
     </header>
  
     <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Popular Games</h2>
-        <button class="studio-btn" onclick="openCreateModal()">+ Create Game</button>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Popular Games</h2>
+            <button class="studio-btn" onclick="openStudioModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                TuBlox Studio
+            </button>
+        </div>
+        <div id="games-list" class="games-grid"></div>
     </div>
-    <div id="games-list" class="games-grid"></div>
-</div>
 
-<script>
-function openCreateModal() {
-    const name = prompt("Введите название вашей игры:");
-    if (!name) return;
-    
-    const author = localStorage.getItem('tublox_username');
-    
-    fetch('/api/create-game', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name, author })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.success) {
-            window.location.href = `/studio.html?id=${data.id}`;
-        }
-    });
-}
-</script>
+    <div id="studio-modal">
+        <div class="modal-content">
+            <h2 style="border-bottom: 1px solid #444; padding-bottom: 10px;">My Projects</h2>
+            <button onclick="createNewGame()" style="background: #a3be8c; color: #2e3440; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                + Create New Game
+            </button>
+            <div id="my-games-list" class="my-games-list">
+                </div>
+            <button onclick="closeStudioModal()" style="margin-top: 30px; background: none; color: gray; border: none; cursor: pointer;">Close</button>
+        </div>
+    </div>
 
     <script src="auth.js"></script> 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         function playGame(id) {
             window.location.href = `/game.html?id=${id}`;
+        }
+        
+        // --- ФУНКЦИИ МОДАЛЬНОГО ОКНА СТУДИИ ---
+
+        function loadMyGames() {
+            const author = localStorage.getItem('tublox_username');
+            if (!author) return;
+
+            fetch('/api/my-games', {
+                headers: { 'x-username': author }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load projects: ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                const list = document.getElementById('my-games-list');
+                list.innerHTML = '';
+                data.games.forEach(game => {
+                    const card = document.createElement('div');
+                    card.className = 'my-game-card';
+                    card.onclick = () => window.location.href = `/studio?id=${game.id}`;
+                    
+                    const statusClass = game.published ? 'public' : 'private';
+                    const statusText = game.published ? 'Public' : 'Private';
+
+                    card.innerHTML = `
+                        <h4>${game.name} <span class="status-badge ${statusClass}">${statusText}</span></h4>
+                        <small>Visits: ${game.visits}</small>
+                        <small>Online: ${game.online}</small>
+                    `;
+                    list.appendChild(card);
+                });
+            })
+            .catch(err => alert('Error loading my projects: ' + err.message));
+        }
+
+        function openStudioModal() {
+            const author = localStorage.getItem('tublox_username');
+            if (!author) {
+                alert('Please log in first to use the Studio.');
+                location.href = '/';
+                return;
+            }
+            loadMyGames();
+            document.getElementById('studio-modal').style.display = 'block';
+        }
+
+        function closeStudioModal() {
+            document.getElementById('studio-modal').style.display = 'none';
+        }
+
+        function createNewGame() {
+            const author = localStorage.getItem('tublox_username');
+            const name = prompt('Enter a name for your new game:') || 'New Game';
+
+            fetch('/api/create-game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-username': author
+                },
+                body: JSON.stringify({ name })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('API Error: ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/studio.html?id=${data.id}`;
+                } else {
+                    alert('Error creating game: ' + data.message);
+                }
+            })
+            .catch(err => alert('An error occurred: ' + err.message));
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -69,12 +163,15 @@ function openCreateModal() {
             const socket = io();
             const list = document.getElementById('games-list');
 
+            // Получаем только публичные игры
             socket.on('update-dashboard', (games) => {
                 list.innerHTML = '';
                 games.forEach(game => {
+                    // ... (Карточки игр без изменений, кроме того, что мы теперь получаем только public)
                     const card = document.createElement('div');
                     card.className = 'game-card';
                     card.innerHTML = `
+                        <img src="${game.avatar || 'default-avatar.png'}" alt="${game.name}" class="game-avatar">
                         <div class="card-header">
                             <h3>${game.name}</h3>
                             <span class="online-badge"><span class="dot"></span> ${game.online} Online</span>

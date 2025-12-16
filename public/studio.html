@@ -3,39 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <title>TuBlox Studio</title>
-    <link rel="stylesheet" href="studio.css">
+    <link rel="stylesheet" href="/studio.css"> 
+    <style>
+        /* Контекстное меню */
+        #context-menu {
+            display: none; position: fixed; background: #2d2d2d; color: white;
+            border: 1px solid #5e81ac; border-radius: 8px; z-index: 10000; width: 180px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); padding: 5px 0;
+        }
+        .menu-item { padding: 10px 15px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .menu-item:hover { background: #5e81ac; }
+        .menu-item.delete { color: #bf616a; }
+        
+        /* Кнопка публикации */
+        .publish-btn { background: linear-gradient(135deg, #a3be8c, #81a1c1); color: #2e3440; font-weight: 900; padding: 10px 20px; border-radius: 10px; }
+
+        /* Dropdown для блоков */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none; position: absolute; background-color: #333; 
+            min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1; border-radius: 4px; top: 40px;
+        }
+        .dropdown-content button {
+            color: white; padding: 12px 16px; text-decoration: none; 
+            display: block; width: 100%; text-align: left; background: none;
+            border: none; cursor: pointer;
+        }
+        .dropdown-content button:hover { background-color: #5e81ac; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+    </style>
 </head>
 <body class="studio-page">
     <div id="studio-ui">
         <div class="toolbar">
-            <button class="tool-btn active" id="tool-select" data-tool="select" title="Выбрать/Двигать (V)">Выбрать/Двигать</button>
-            <button class="tool-btn" id="tool-resize" data-tool="resize" title="Масштабировать (R)">Масштабировать</button>
-            <button class="tool-btn" id="tool-block-default" data-tool="block-default" title="Создать Блок (B)">Default Block</button>
-            <button class="tool-btn" id="tool-block-spawn" data-tool="block-spawn" title="Установить Спавн (S)">Spawn Block</button>
-            <button class="tool-btn" id="tool-delete" data-tool="delete" title="Удалить (X)">Удалить</button>
+            <button id="tool-select" class="tool-btn active" data-tool="select">Cursor</button>
             
-            <button class="save-btn" onclick="saveMap()">Опубликовать</button>
-            <button class="exit-btn" onclick="location.href='/dashboard'">Выход</button>
+            <div class="dropdown">
+                <button class="tool-btn" id="tool-block-dropdown">Add Block</button>
+                <div class="dropdown-content">
+                    <button data-type="floor" onclick="setTool('block-floor')">Default Block</button>
+                    <button data-type="checkpoint" onclick="setTool('block-checkpoint')">Checkpoint</button>
+                    <button data-type="kill" onclick="setTool('block-kill')">Kill Block</button>
+                    <button data-type="finish" onclick="setTool('block-finish')">Finish Block</button>
+                </div>
+            </div>
+            
+            <button id="tool-block-spawn" class="tool-btn" data-tool="block-spawn">Spawn</button>
+            <button id="tool-resize" class="tool-btn" data-tool="resize">Resize</button>
+            <button id="tool-delete" class="tool-btn" data-tool="delete">Delete</button>
+            
+            <button class="publish-btn" id="publish-btn" onclick="openPublishModal()">PUBLISH / UPDATE</button>
+            <button class="exit-btn" onclick="location.href='/dashboard'">Exit</button>
         </div>
         
         <div class="properties" id="props-panel">
-            <h3>Свойства Объекта</h3>
-            <label>ID: <span id="prop-id"></span></label>
-            <label>Тип: <span id="prop-type"></span></label>
-            
-            <h4>Позиция/Размер</h4>
+            <h3>Object Inspector</h3>
+            <label>ID: <span id="prop-id">None</span></label>
+            <label>Type: <span id="prop-type">None</span></label>
             <label>X: <input type="number" id="prop-x"></label>
             <label>Y: <input type="number" id="prop-y"></label>
-            <label>Ширина (W): <input type="number" id="prop-w"></label>
-            <label>Высота (H): <input type="number" id="prop-h"></label>
-            
-            <h4>Стиль</h4>
-            <label>Цвет: <input type="color" id="prop-color"></label>
+            <label>Width: <input type="number" id="prop-w"></label>
+            <label>Height: <input type="number" id="prop-h"></label>
+            <label>Color: <input type="color" id="prop-color"></label>
+            <label>Opacity: <input type="range" id="prop-opacity" min="0" max="1" step="0.1" value="1"></label>
+            <label>Collision: <input type="checkbox" id="prop-collision" checked></label>
         </div>
+    </div>
+
+    <div id="context-menu">
+        <div class="menu-item" onclick="focusOnObject()">Properties</div>
+        <hr style="border: 0.5px solid #444;">
+        <div class="menu-item delete" onclick="deleteObject()">Delete Block</div>
+    </div>
+
+    <div id="publish-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#2e3440; padding:30px; border-radius:20px; z-index:11000; border:2px solid #a3be8c; width:380px;">
+        <h2 style="margin-top:0">Game Settings</h2>
+        <label>Game Name:</label><br>
+        <input id="pub-name" type="text" class="pub-input"><br>
+        <label>Description:</label><br>
+        <textarea id="pub-desc" class="pub-input" style="height:60px;"></textarea><br>
+        <label>Publish Status:</label><br>
+        <select id="pub-status" class="pub-input">
+            <option value="true">Public (Visible on Dashboard)</option>
+            <option value="false">Private (Only you can access)</option>
+        </select><br>
+        <label>Avatar:</label><br>
+        <input type="file" id="pub-file" accept="image/*" style="margin-bottom:15px;"><br>
+        <img id="pub-avatar-preview" src="" style="max-width:100px; display:none;"><br>
+        <button onclick="confirmPublish()" style="width:100%; background:#a3be8c; padding:12px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">SAVE & PUBLISH</button>
+        <button onclick="closePublishModal()" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancel</button>
+    </div>
+
+    <div id="finish-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#2e3440; padding:30px; border-radius:20px; z-index:11000; border:2px solid #a3be8c; width:300px; text-align: center;">
+        <h2 style="margin-top:0; color: #a3be8c;">Level Complete!</h2>
+        <p>Congratulations, you finished the level!</p>
+        <button onclick="window.location.reload()" style="background:#a3be8c; padding:10px 15px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:15px;">Restart Game</button>
+        <button onclick="window.location.href='/dashboard'" style="background:#81a1c1; padding:10px 15px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:10px;">Exit to Dashboard</button>
     </div>
 
     <canvas id="studioCanvas"></canvas>
 
-    <script src="studio/editor.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/studio/PublishSave.js"></script>
+    <script src="/studio/GameLoad.js"></script>
+    <script src="/studio/editor.js"></script>
 </body>
 </html>

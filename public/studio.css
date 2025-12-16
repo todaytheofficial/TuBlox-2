@@ -1,33 +1,63 @@
 .studio-page {
     margin: 0; background: #1e1e1e; color: white;
     font-family: sans-serif; overflow: hidden;
+    user-select: none;
 }
 
 #studio-ui {
     position: absolute; top: 0; left: 0; width: 100%; pointer-events: none;
+    z-index: 100;
 }
 
 .toolbar {
     pointer-events: auto; background: #2d2d2d; padding: 10px;
     display: flex; gap: 10px; border-bottom: 2px solid #3d3d3d;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
 .tool-btn, .save-btn, .exit-btn {
     padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white;
+    transition: 0.2s; font-weight: bold;
 }
 
 .tool-btn { background: #444; }
-.tool-btn.active { background: #5e81ac; }
-.save-btn { background: #a3be8c; margin-left: auto; }
+.tool-btn:hover { background: #555; }
+.tool-btn.active { background: #5e81ac; border: 1px solid #81a1c1; }
+
+.save-btn { background: #a3be8c; margin-left: auto; color: #2e3440; }
+.save-btn:hover { background: #b4cf9c; }
+
 .exit-btn { background: #bf616a; }
+.exit-btn:hover { background: #d08770; }
 
 .properties {
-    position: absolute; right: 0; top: 60px; width: 200px;
+    position: absolute; right: 0; top: 60px; width: 220px;
     background: #2d2d2d; padding: 15px; pointer-events: auto;
-    border-left: 2px solid #3d3d3d; height: 100vh;
+    border-left: 2px solid #3d3d3d; height: calc(100vh - 60px);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.3);
 }
 
-.properties label { display: block; margin-bottom: 10px; font-size: 14px; }
-.properties input { width: 100%; background: #444; border: 1px solid #555; color: white; padding: 5px; }
+.properties h3 { margin-top: 0; color: #5e81ac; font-size: 16px; border-bottom: 1px solid #3d3d3d; padding-bottom: 5px; }
+.properties h4 { margin: 15px 0 10px 0; font-size: 14px; color: #888; }
 
-#studioCanvas { display: block; }
+.properties label { display: block; margin-bottom: 10px; font-size: 13px; }
+.properties input, .properties select, .properties textarea { 
+    width: 100%; background: #444; border: 1px solid #555; 
+    color: white; padding: 6px; border-radius: 4px; box-sizing: border-box;
+    margin-top: 3px;
+}
+
+#studioCanvas { display: block; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; }
+
+/* Scratch blocks styles */
+.scratch-item {
+    padding: 10px; margin-bottom: 10px; border-radius: 8px;
+    cursor: grab; font-weight: bold; font-size: 12px;
+    border: 2px solid rgba(0,0,0,0.1);
+}
+/* Стили для модального окна публикации */
+.pub-input {
+    width: 100%; background: #444; border: 1px solid #555; 
+    color: white; padding: 6px; border-radius: 4px; box-sizing: border-box;
+    margin-top: 5px; margin-bottom: 15px;
+}
