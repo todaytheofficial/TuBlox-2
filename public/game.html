@@ -10,10 +10,20 @@
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
 
-        <div id="chat-box"> 
-            <div id="chat-messages"></div>
-            <input type="text" id="chat-input" placeholder="Чат...">
-        </div>
+<div id="game-ui-overlay">
+    <button class="ui-btn" id="toggle-chat" title="Скрыть чат">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+    
+    <button class="ui-btn" id="exit-game" onclick="location.href='/dashboard'" title="Выйти в меню">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </button>
+</div>
+
+<div id="chat-box"> 
+    <div id="chat-messages"></div>
+    <input type="text" id="chat-input" placeholder="Чат...">
+</div>
 
         <div id="mobile-controls">
             <div id="joystick-zone">

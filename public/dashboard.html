@@ -23,15 +23,35 @@
             </button>
         </div>
     </header>
-
+ 
     <div class="container">
-        <h2>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--accent-secondary)"><path d="M12 2l2.45 7.55H22l-6.12 4.45L18.33 22 12 17.27 5.67 22l2.45-7.55L2 9.55h7.55z"/></svg>
-            Popular Games
-        </h2>
-        <div id="games-list" class="games-grid">
-            </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Popular Games</h2>
+        <button class="studio-btn" onclick="openCreateModal()">+ Create Game</button>
     </div>
+    <div id="games-list" class="games-grid"></div>
+</div>
+
+<script>
+function openCreateModal() {
+    const name = prompt("Введите название вашей игры:");
+    if (!name) return;
+    
+    const author = localStorage.getItem('tublox_username');
+    
+    fetch('/api/create-game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name, author })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            window.location.href = `/studio.html?id=${data.id}`;
+        }
+    });
+}
+</script>
 
     <script src="auth.js"></script> 
     <script src="/socket.io/socket.io.js"></script>

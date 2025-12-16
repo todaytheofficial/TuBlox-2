@@ -1,0 +1,33 @@
+.studio-page {
+    margin: 0; background: #1e1e1e; color: white;
+    font-family: sans-serif; overflow: hidden;
+}
+
+#studio-ui {
+    position: absolute; top: 0; left: 0; width: 100%; pointer-events: none;
+}
+
+.toolbar {
+    pointer-events: auto; background: #2d2d2d; padding: 10px;
+    display: flex; gap: 10px; border-bottom: 2px solid #3d3d3d;
+}
+
+.tool-btn, .save-btn, .exit-btn {
+    padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white;
+}
+
+.tool-btn { background: #444; }
+.tool-btn.active { background: #5e81ac; }
+.save-btn { background: #a3be8c; margin-left: auto; }
+.exit-btn { background: #bf616a; }
+
+.properties {
+    position: absolute; right: 0; top: 60px; width: 200px;
+    background: #2d2d2d; padding: 15px; pointer-events: auto;
+    border-left: 2px solid #3d3d3d; height: 100vh;
+}
+
+.properties label { display: block; margin-bottom: 10px; font-size: 14px; }
+.properties input { width: 100%; background: #444; border: 1px solid #555; color: white; padding: 5px; }
+
+#studioCanvas { display: block; }

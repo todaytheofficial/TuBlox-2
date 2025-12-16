@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>TuBlox Studio</title>
+    <link rel="stylesheet" href="studio.css">
+</head>
+<body class="studio-page">
+    <div id="studio-ui">
+        <div class="toolbar">
+            <button class="tool-btn active" id="tool-select" data-tool="select" title="Выбрать/Двигать (V)">Выбрать/Двигать</button>
+            <button class="tool-btn" id="tool-resize" data-tool="resize" title="Масштабировать (R)">Масштабировать</button>
+            <button class="tool-btn" id="tool-block-default" data-tool="block-default" title="Создать Блок (B)">Default Block</button>
+            <button class="tool-btn" id="tool-block-spawn" data-tool="block-spawn" title="Установить Спавн (S)">Spawn Block</button>
+            <button class="tool-btn" id="tool-delete" data-tool="delete" title="Удалить (X)">Удалить</button>
+            
+            <button class="save-btn" onclick="saveMap()">Опубликовать</button>
+            <button class="exit-btn" onclick="location.href='/dashboard'">Выход</button>
+        </div>
+        
+        <div class="properties" id="props-panel">
+            <h3>Свойства Объекта</h3>
+            <label>ID: <span id="prop-id"></span></label>
+            <label>Тип: <span id="prop-type"></span></label>
+            
+            <h4>Позиция/Размер</h4>
+            <label>X: <input type="number" id="prop-x"></label>
+            <label>Y: <input type="number" id="prop-y"></label>
+            <label>Ширина (W): <input type="number" id="prop-w"></label>
+            <label>Высота (H): <input type="number" id="prop-h"></label>
+            
+            <h4>Стиль</h4>
+            <label>Цвет: <input type="color" id="prop-color"></label>
+        </div>
+    </div>
+
+    <canvas id="studioCanvas"></canvas>
+
+    <script src="studio/editor.js"></script>
+</body>
+</html>
