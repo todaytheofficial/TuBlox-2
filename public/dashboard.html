@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuBlox - Dashboard </title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <img src="avatar.png" class="logo" alt="TuBlox 2">
+            <h1>TuBlox 2</h1>
+        </div>
+        <div class="header-right">
+            <span id="user-display">Hello, Player!</span>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Popular Games</h2>
+        <div id="games-list" class="games-grid">
+            </div>
+    </div>
+
+    <script src="auth.js"></script> <script src="/socket.io/socket.io.js"></script>
+    <script>
+        function playGame(id) {
+            window.location.href = `/game.html?id=${id}`;
+        }
+
+        // ===============================================
+        // 2. ИНИЦИАЛИЗАЦИЯ (Когда страница загружена)
+        // ===============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Проверка, что пользователь авторизован, иначе перенаправить
+            checkAuthAndRedirect(false); 
+            
+            const username = localStorage.getItem('tublox_username');
+            document.getElementById('user-display').innerText = `Привет, ${username}!`;
+            
+            const socket = io();
+            const list = document.getElementById('games-list');
+
+            socket.on('update-dashboard', (games) => {
+                list.innerHTML = '';
+                games.forEach(game => {
+                    const card = document.createElement('div');
+                    card.className = 'game-card';
+                    // Обрати внимание: onclick вызывает глобальную функцию playGame(id)
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h3>${game.name}</h3>
+                            <span class="online-badge">Online: ${game.online}</span>
+                        </div>
+                        <p class="author">Author: ${game.author}</p>
+                        <p class="desc">${game.desc}</p>
+                        <div class="stats"> ${game.visits} Visits</div>
+                        <button onclick="playGame('${game.id}')">Play</button>
+                    `;
+                    list.appendChild(card);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

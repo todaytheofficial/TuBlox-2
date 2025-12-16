@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - TuBlox 2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+    <div class="auth-box">
+        <h2>Вход в TuBlox ID</h2>
+        <input type="text" id="inp-nick" placeholder="Никнейм">
+        <input type="password" id="inp-pass" placeholder="Пароль">
+        <button onclick="handleLogin()">Войти</button>
+        <p id="auth-msg" class="error-msg"></p>
+        <p class="small-link">Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Если уже авторизован, перекинуть на dashboard
+            checkAuthAndRedirect(true); 
+        });
+        
+        function handleLogin() {
+            const username = document.getElementById('inp-nick').value;
+            const password = document.getElementById('inp-pass').value;
+            authenticate('login', username, password);
+        }
+    </script>
+</body>
+</html>

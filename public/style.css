@@ -1,0 +1,332 @@
+/* ========================
+   GLOBAL/BASE (Clean Dark)
+   ======================== */
+:root {
+    --bg-main: #14141d; /* Темно-синий фон игры */
+    --bg-darker: #0d0d14; /* Черный фон для хедера и карточек */
+    --text-main: #d8dee9; /* Светлый основной текст */
+    --accent-primary: #5e81ac; /* Акцент (Синий/Свой игрок/Кнопки) */
+    --accent-secondary: #a3be8c; /* Дополнительный акцент (Зеленый/Платформы) */
+    --danger: #bf616a; /* Красный (Выход/Ошибки) */
+    --shadow-main: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ИСПРАВЛЕНИЕ ЭКРАНА: Убеждаемся, что HTML и BODY занимают всю высоту */
+html, body {
+    height: 100%;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ========================
+   GLOBAL BUTTONS
+   ======================== */
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.2s;
+    padding: 10px 15px;
+}
+
+button:hover {
+    filter: brightness(1.2);
+}
+
+/* ========================
+   HEADER & DASHBOARD
+   ======================== */
+header {
+    background-color: var(--bg-darker);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-main);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+    border-radius: 5px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--accent-primary);
+}
+
+.header-right button {
+    background-color: var(--danger);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+h2 {
+    color: var(--accent-secondary);
+    border-bottom: 2px solid var(--bg-darker);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Game Grid */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.game-card {
+    background-color: var(--bg-darker);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-main);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.card-header h3 {
+    margin: 0;
+    color: var(--text-main);
+}
+
+.online-badge {
+    background-color: var(--accent-secondary);
+    color: var(--bg-darker);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.game-card .author {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.game-card .desc {
+    flex-grow: 1;
+    margin-bottom: 15px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.game-card button {
+    margin-top: auto; 
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+/* ========================
+   AUTH FORMS (Login/Register)
+   ======================== */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.auth-box {
+    background-color: var(--bg-darker);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-main);
+    width: 350px;
+    text-align: center;
+}
+
+.auth-box h2 {
+    border: none;
+    color: var(--accent-primary);
+    margin-bottom: 20px;
+}
+
+.auth-box input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #222;
+    color: var(--text-main);
+    box-sizing: border-box;
+}
+
+.auth-box button {
+    width: 100%;
+    background-color: var(--accent-secondary);
+    color: var(--bg-darker);
+    font-weight: bold;
+}
+
+#auth-msg {
+    color: var(--danger);
+    margin-top: 15px;
+    min-height: 20px;
+}
+
+
+/* ========================
+   GAME PAGE (Canvas, Chat, Mobile Controls)
+   ======================== */
+
+body.game-page { 
+    overflow: hidden; 
+    height: 100vh;
+} 
+
+#game-container { 
+    position: relative; 
+    width: 100%; 
+    height: 100%; 
+}
+#gameCanvas { 
+    display: block; 
+    width: 100%; 
+    height: 100%; 
+}
+
+/* СТИЛИЗАЦИЯ КНОПКИ ВЫХОДА */
+#exit-game-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: var(--bg-darker);
+    color: var(--text-main);
+    box-shadow: var(--shadow-main);
+    z-index: 10;
+}
+#exit-game-btn:hover {
+    background-color: #333;
+}
+
+/* ЧАТ СТИЛИ */
+#chat-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 300px;
+    height: 300px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    border-top-right-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    z-index: 10;
+}
+
+#chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 5px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: var(--accent-primary);
+    border-radius: 10px;
+}
+
+#chat-input {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    box-sizing: border-box;
+}
+
+/* MOBILE CONTROLS */
+#mobile-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: none; 
+    z-index: 100;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: rgba(94, 129, 172, 0.7); 
+    color: white;
+    font-size: 24px;
+    line-height: 60px;
+    text-align: center;
+    margin: 5px;
+    box-shadow: var(--shadow-main);
+    user-select: none;
+    touch-action: manipulation;
+}
+
+#btn-left, #btn-right {
+    position: absolute;
+    bottom: 5px;
+}
+
+#btn-left {
+    left: -140px;
+}
+
+#btn-right {
+    left: -70px;
+}
+
+#btn-jump {
+    position: relative;
+    float: right;
+}
+
+/* Media Query: Показываем кнопки на маленьких экранах и настраиваем чат */
+@media (max-width: 800px) {
+    #mobile-controls {
+        display: block;
+    }
+    #chat-box {
+        width: 100%;
+        bottom: 0;
+        left: 0;
+        height: 200px;
+        border-radius: 0;
+    }
+}
