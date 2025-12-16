@@ -2,13 +2,16 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+const crypto = require('crypto'); // Необходимо для проверки подписи Telegram
 
 const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
-// Настройка статики (убедись, что файлы лежат в папке public или в корне)
+const BOT_TOKEN = '8331842172:AAHV5pckoH8afnmF2-O03pke-2ck52W51H4'; 
+
+// Настройка статики и парсинга JSON
 app.use(express.static(path.join(__dirname, 'public'))); 
 app.use(express.json());
 
@@ -32,29 +35,54 @@ const gameLevels = {
     ]
 };
 
-// --- МАРШРУТЫ (FIX 404) ---
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+// --- МАРШРУТЫ ДЛЯ HTML ФАЙЛОВ ---
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'public', 'game.html')));
+app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'public', 'register.html')));
+
+// --- API АВТОРИЗАЦИИ ---
+
+// 1. Telegram Auth (Новый маршрут)
+app.post('/auth/telegram', (req, res) => {
+    const data = req.body;
+
+    // Валидация данных Telegram (проверка хеша)
+    const { hash, ...userData } = data;
+    const checkString = Object.keys(userData)
+        .sort()
+        .map(key => `${key}=${userData[key]}`)
+        .join('\n');
+
+    const secretKey = crypto.createHash('sha256').update(BOT_TOKEN).digest();
+    const hmac = crypto.createHmac('sha256', secretKey).update(checkString).digest('hex');
+
+    if (hmac !== hash) {
+        return res.status(403).json({ success: false, message: 'Ошибка безопасности: данные подделаны.' });
+    }
+
+    const username = userData.username || userData.first_name;
+    
+    // Сохраняем или обновляем пользователя в памяти
+    if (!users[username]) {
+        users[username] = { uid: `tg_${userData.id}`, isTG: true };
+    }
+
+    res.json({ success: true, username: username });
 });
 
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/game', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'game.html'));
-});
-
-// API Авторизации
+// 2. Обычная регистрация
 app.post('/api/register', (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ success: false, message: 'Нужны имя и пароль.' });
-    if (users[username]) return res.status(409).json({ success: false, message: 'Пользователь уже есть.' });
+    if (users[username]) return res.status(409).json({ success: false, message: 'Пользователь уже существует.' });
+    
     const uniqueId = `uid_${Date.now()}`;
     users[username] = { password, uid: uniqueId };
     res.json({ success: true, uid: uniqueId });
 });
 
+// 3. Обычный вход
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     const user = users[username];
@@ -75,12 +103,9 @@ function updateOnlineCounts() {
 }
 
 io.on('connection', (socket) => {
-    // При любом подключении сразу отправляем список игр (Fix Dashboard)
     socket.emit('update-dashboard', gamesData);
 
     const { gameId, username } = socket.handshake.query;
-    
-    // Если игрок просто в Dashboard, дальше не идем
     if (!gameId || gameId === 'null' || gameId === 'undefined') return;
 
     if (!activeGames[gameId]) {
@@ -93,13 +118,12 @@ io.on('connection', (socket) => {
         id: socket.id,
         username: username || 'Гость',
         x: 50, y: 100, vx: 0, grounded: false,
-        color: '#5e81ac' // Основной цвет персонажа
+        color: '#5e81ac'
     };
     room.players[socket.id] = newPlayer;
 
     updateOnlineCounts();
     
-    // Рассылаем данные игрокам в комнате
     io.to(gameId).emit('player-data', room.players);
     io.to(gameId).emit('chat-message', { user: 'System', text: `${newPlayer.username} вошел!` });
     
@@ -111,7 +135,6 @@ io.on('connection', (socket) => {
     socket.on('player-update', (data) => {
         if (room.players[socket.id]) {
             Object.assign(room.players[socket.id], data);
-            // Оптимизация: используем broadcast, чтобы не слать данные самому себе
             socket.to(gameId).emit('player-data', room.players);
         }
     });
