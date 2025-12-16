@@ -5,7 +5,6 @@ const socketIo = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 
-// Настройки для Heroku/Render или другого хостинга
 const PORT = process.env.PORT || 3000;
 
 // ===================================
@@ -20,16 +19,23 @@ app.use(express.json());
 
 
 // ===================================
-// 2. АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ (REST API)
+// 2. ДАННЫЕ ИГР И ХРАНИЛИЩЕ ПОЛЬЗОВАТЕЛЕЙ
 // ===================================
 
-// ВНИМАНИЕ: В реальном приложении здесь должна быть база данных! 
-// Для примера мы используем простой объект для хранения пользователей.
-const users = {}; 
+const users = {}; // Хранение пользователей (ВРЕМЕННОЕ, в реале нужна БД!)
+
+const gamesData = [
+    { id: 'parkour-1', name: 'Простой Паркур', author: 'TuBlox Dev', desc: 'Тестовый уровень для отработки прыжков и коллизии.', online: 0, visits: 1200 },
+    { id: 'arena-2', name: 'Песочница с Боем', author: 'Anon', desc: 'Огромная карта для PvP и строительства.', online: 0, visits: 800 },
+];
+
+
+// ===================================
+// 3. АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ (REST API)
+// ===================================
 
 /**
- * Маршрут для Регистрации
- * URL: POST /api/register
+ * Маршрут для Регистрации: POST /api/register
  */
 app.post('/api/register', (req, res) => {
     const { username, password } = req.body;
@@ -42,7 +48,6 @@ app.post('/api/register', (req, res) => {
         return res.status(409).json({ success: false, message: 'User already exists.' });
     }
 
-    // Сохраняем нового пользователя (В РЕАЛЬНОСТИ: шифруем пароль и сохраняем в БД)
     const uniqueId = `uid_${Date.now()}`;
     users[username] = { password, uid: uniqueId };
     console.log(`[AUTH] New user registered: ${username}`);
@@ -50,13 +55,12 @@ app.post('/api/register', (req, res) => {
     return res.json({ 
         success: true, 
         message: 'Registration successful. You can now log in.',
-        uid: uniqueId // Отдаем ID клиенту для использования в сессии
+        uid: uniqueId
     });
 });
 
 /**
- * Маршрут для Логина
- * URL: POST /api/login
+ * Маршрут для Логина: POST /api/login
  */
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
@@ -64,13 +68,11 @@ app.post('/api/login', (req, res) => {
     const user = users[username];
 
     if (!user || user.password !== password) {
-        // Используем 401 Unauthorized для ошибки аутентификации
         return res.status(401).json({ success: false, message: 'Invalid username or password.' });
     }
 
     console.log(`[AUTH] User logged in: ${username}`);
     
-    // Успешный логин
     return res.json({ 
         success: true, 
         message: 'Login successful.',
@@ -78,120 +80,120 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Если запрошенный URL не найден (404), отправляем JSON-ответ
+// Обработка 404 для API
 app.use((req, res, next) => {
-    res.status(404).json({ success: false, message: 'Not Found' });
+    // Если запрос не был обработан выше (GET /game.html, POST /api/login и т.д.)
+    if (req.method !== 'GET' || !req.path.includes('.')) {
+        res.status(404).json({ success: false, message: 'Not Found' });
+    } else {
+        next(); // Продолжаем, если это, например, GET-запрос статического файла, который не найден
+    }
 });
 
 
 // ===================================
-// 3. МУЛЬТИПЛЕЕР (SOCKET.IO)
+// 4. МУЛЬТИПЛЕЕР (SOCKET.IO)
 // ===================================
 
 const io = socketIo(server);
-const activeGames = {}; // Хранилище для всех игровых комнат
+const activeGames = {}; // { 'parkour-1': { players: {}, chat: [] } }
+
+// Функция для обновления счетчика онлайна и отправки на дашборд
+function updateOnlineCounts() {
+    gamesData.forEach(game => game.online = 0);
+    
+    for (const gameId in activeGames) {
+        const game = gamesData.find(g => g.id === gameId);
+        if (game) {
+            game.online = Object.keys(activeGames[gameId].players).length;
+        }
+    }
+    // Отправляем обновленный список всем, кто подключен
+    io.emit('update-dashboard', gamesData); 
+}
 
 io.on('connection', (socket) => {
-    // Получаем параметры из URL, переданные при подключении
     const { gameId, username, uniqueUserId } = socket.handshake.query;
 
+    // ЕСЛИ НЕТ gameId, то это подключение с DASHBOARD
     if (!gameId) {
-        console.log(`[SOCKET] Disconnecting unassigned socket: ${socket.id}`);
-        socket.disconnect();
-        return;
+        updateOnlineCounts();
+        return; 
     }
 
-    // Инициализация игровой комнаты, если ее нет
+    // --- ЛОГИКА ИГРОВОЙ КОМНАТЫ ---
+
     if (!activeGames[gameId]) {
         activeGames[gameId] = {
             players: {},
             chat: []
         };
-        console.log(`[SERVER] Game room created: ${gameId}`);
     }
 
     const room = activeGames[gameId];
 
-    // Присоединение игрока к комнате
     socket.join(gameId);
 
-    // Инициализация данных нового игрока
     const newPlayer = {
         id: socket.id,
         username: username || 'Гость',
         uniqueUserId: uniqueUserId || socket.id,
-        x: 50, // Начальная позиция
+        x: 50, 
         y: 100,
-        w: 40, // Размеры по последним правкам
+        w: 40, // Передаем новые размеры
         h: 60,
         vx: 0,
         grounded: false
     };
     room.players[socket.id] = newPlayer;
 
-    console.log(`[CONNECT] ${username} (${socket.id}) joined room ${gameId}`);
-
-    // Отправляем всем игрокам в комнате обновленные данные всех игроков
+    updateOnlineCounts(); // Обновляем счетчик онлайна
     io.to(gameId).emit('player-data', room.players);
-    // Отправляем системное сообщение в чат
     io.to(gameId).emit('chat-message', { user: 'System', text: `Игрок ${username} подключился!` });
     
     // --- Обработка событий ---
 
-    // 1. Обновление позиции игрока
     socket.on('player-update', (data) => {
         const p = room.players[socket.id];
         if (p) {
-            // Обновляем только разрешенные поля
             p.x = data.x;
             p.y = data.y;
             p.vx = data.vx;
             p.grounded = data.grounded;
-            // Обновляем размеры, если они были переданы (для синхронизации)
             if (data.w) p.w = data.w;
             if (data.h) p.h = data.h;
             
-            // Отправляем обновленные данные всем, кроме отправителя
             socket.to(gameId).emit('player-data', room.players);
         }
     });
 
-    // 2. Обработка сообщений чата
     socket.on('chat-message', (text) => {
         const playerUsername = room.players[socket.id] ? room.players[socket.id].username : 'Unknown';
         const message = { user: playerUsername, text: text, timestamp: Date.now() };
-        
-        // Добавляем в историю комнаты и ограничиваем, если нужно
         room.chat.push(message); 
         if (room.chat.length > 50) room.chat.shift(); 
-        
-        // Отправляем сообщение всем в комнате
         io.to(gameId).emit('chat-message', message);
     });
 
-    // 3. Отключение игрока
     socket.on('disconnect', () => {
         const disconnectedPlayer = room.players[socket.id];
         if (disconnectedPlayer) {
             delete room.players[socket.id];
-            console.log(`[DISCONNECT] ${disconnectedPlayer.username} (${socket.id}) left room ${gameId}`);
-
-            // Оповещаем остальных игроков о разъединении
+            
             socket.to(gameId).emit('player-disconnect', socket.id);
             io.to(gameId).emit('chat-message', { user: 'System', text: `Игрок ${disconnectedPlayer.username} отключился.` });
             
-            // Если комната пуста, удаляем ее
             if (Object.keys(room.players).length === 0) {
                 delete activeGames[gameId];
-                console.log(`[SERVER] Game room deleted: ${gameId}`);
             }
+            updateOnlineCounts(); // Обновляем счетчик после отключения
         }
     });
 });
 
 
 // ===================================
-// 4. ЗАПУСК СЕРВЕРА
+// 5. ЗАПУСК СЕРВЕРА
 // ===================================
 
 server.listen(PORT, () => {

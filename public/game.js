@@ -2,6 +2,7 @@
 // 0. АВТОРИЗАЦИЯ
 // ===================================
 if (typeof checkAuthAndRedirect === 'function') {
+    // Эта функция должна быть определена в auth.js
     checkAuthAndRedirect(false); 
 }
 
@@ -39,23 +40,23 @@ const keys = { right: false, left: false, up: false };
 const player = { 
     x: 50, 
     y: 200, 
-    w: 40, // ИЗМЕНЕНИЕ: Ширина увеличена с 30 до 40
-    h: 60, // ИЗМЕНЕНИЕ: Высота увеличена с 45 до 60
+    w: 40, // УВЕЛИЧЕННЫЙ РАЗМЕР
+    h: 60, // УВЕЛИЧЕННЫЙ РАЗМЕР
     vx: 0, 
     vy: 0, 
     grounded: false 
 };
 
 const gravity = 0.5;
-const jumpForce = -13; // Немного увеличен прыжок для большей модели
+const jumpForce = -13; 
 let walkFrame = 0; 
 
 const friction = 0.85; 
 const acceleration = 1.5; 
 
-// ИЗМЕНЕНИЕ: УВЕЛИЧЕННАЯ КАРТА (PARKOUR)
+// УВЕЛИЧЕННАЯ КАРТА (PARKOUR)
 const levelData = [
-    // Увеличенный пол
+    // Увеличенный пол (самая нижняя платформа)
     { x: 0, y: 500, w: 3000, h: 50 },    
     
     // Начальные платформы (масштабируем и разносим)
@@ -73,7 +74,7 @@ const levelData = [
 ];
 
 function update() {
-    // === Движение (без изменений) ===
+    // === Движение ===
     if (keys.right) player.vx += acceleration;
     if (keys.left) player.vx -= acceleration;
     
@@ -83,16 +84,17 @@ function update() {
     if (player.vx > maxSpeed) player.vx = maxSpeed;
     if (player.vx < -maxSpeed) player.vx = -maxSpeed;
 
+    // Гравитация и Прыжок
     player.vy += gravity;
     if (keys.up && player.grounded) {
         player.vy = jumpForce;
         player.grounded = false;
     }
 
-    // Временно обновляем только Y
+    // Обновляем Y
     player.y += player.vy; 
     
-    // === Коллизия по Y (КРИТИЧЕСКИЙ ФИКС ТЕЛЕПОРТА) ===
+    // === Коллизия по Y (ФИКС ТЕЛЕПОРТА) ===
     let wasGrounded = player.grounded;
     player.grounded = false;
     
@@ -102,24 +104,17 @@ function update() {
             player.y < rect.y + rect.h &&
             player.y + player.h > rect.y) {
             
-            // Проверка, откуда произошло столкновение
-            
-            // СТОЛКНОВЕНИЕ СВЕРХУ (ИГРОК ПАДАЕТ)
-            // Мы проверяем, находился ли игрок над блоком в предыдущем кадре
-            if (wasGrounded || player.vy >= 0) { 
+            // 1. СТОЛКНОВЕНИЕ СВЕРХУ (Игрок падает)
+            if (player.vy >= 0 && player.y + player.h - player.vy <= rect.y) {
                 player.grounded = true;
                 player.vy = 0;
                 player.y = rect.y - player.h; // Фиксируем точно на поверхности
             } 
             
-            // СТОЛКНОВЕНИЕ СНИЗУ (ИГРОК ПРЫГАЕТ И БЬЕТСЯ ГОЛОВОЙ)
+            // 2. СТОЛКНОВЕНИЕ СНИЗУ (Игрок бьется головой)
             else if (player.vy < 0) {
-                // Если нижняя часть головы (y) находится выше, чем нижняя часть блока
-                // (Это более точная проверка для удара головой)
-                if (player.y <= rect.y + rect.h) {
-                    player.vy = 0;
-                    player.y = rect.y + rect.h; // Фиксируем под поверхностью
-                }
+                player.vy = 0;
+                player.y = rect.y + rect.h; // Фиксируем под поверхностью
             }
         }
     });
@@ -127,7 +122,7 @@ function update() {
     // Обновляем X
     player.x += player.vx;
 
-    // === Коллизия по X (Горизонтальная, без изменений) ===
+    // === Коллизия по X (Горизонтальная) ===
     levelData.forEach(rect => {
         if (player.x < rect.x + rect.w &&
             player.x + player.w > rect.x &&
@@ -145,7 +140,7 @@ function update() {
         }
     });
 
-    // Респаун
+    // Респаун (Если игрок падает ниже пола)
     if (player.y > levelData[0].y + 200) { 
         player.x = 50; player.y = 100; player.vx = 0; player.vy = 0;
     }
@@ -172,25 +167,24 @@ function drawCharacter(ctx, x, y, w, h, vx, isGrounded, nickname, isLocal = fals
         currentWalkFrame = isMoving ? Date.now() / 100 : 0; 
     }
     
-    // Модификация смещения для большей модели
-    const legOffset = isMoving ? Math.sin(currentWalkFrame) * 10 : 0; // Увеличен с 7 до 10
+    const legOffset = isMoving ? Math.sin(currentWalkFrame) * 10 : 0; 
     
     ctx.save();
     
     // 1. НОГИ (Штаны)
     ctx.fillStyle = '#111';
-    const legH = h / 3; // Ноги занимают примерно треть высоты (20px)
-    ctx.fillRect(centerX - 10, y + h - legH, 10, legH + legOffset); // Левая нога
-    ctx.fillRect(centerX + 0, y + h - legH, 10, legH - legOffset);  // Правая нога
+    const legH = h / 3; 
+    ctx.fillRect(centerX - 10, y + h - legH, 10, legH + legOffset); 
+    ctx.fillRect(centerX + 0, y + h - legH, 10, legH - legOffset);  
 
     // 2. ТЕЛО (Футболка)
     ctx.fillStyle = isLocal ? '#5e81ac' : '#d08770'; 
-    ctx.fillRect(centerX - 15, y + 10, 30, h - legH - 10); // Тело 30x30
+    ctx.fillRect(centerX - 15, y + 10, 30, h - legH - 10); 
 
     // 3. ГОЛОВА (Кожа)
     ctx.fillStyle = '#ffccaa'; 
     const headW = 24;
-    ctx.fillRect(centerX - headW/2, y - 10, headW, headW); // Квадратная голова
+    ctx.fillRect(centerX - headW/2, y - 10, headW, headW); 
 
     // 4. ГЛАЗА
     ctx.fillStyle = '#111';
@@ -202,14 +196,14 @@ function drawCharacter(ctx, x, y, w, h, vx, isGrounded, nickname, isLocal = fals
     ctx.fillStyle = '#ffccaa';
     const armOffset = isMoving ? -legOffset * 0.8 : 0;
     const armW = 10;
-    const armH = h - legH - 10; // Высота руки равна высоте тела
+    const armH = h - legH - 10; 
     
-    ctx.fillRect(centerX - 15 - armW, y + 10 + armOffset, armW, armH); // Левая рука
-    ctx.fillRect(centerX + 15, y + 10 - armOffset, armW, armH); // Правая рука
+    ctx.fillRect(centerX - 15 - armW, y + 10 + armOffset, armW, armH); 
+    ctx.fillRect(centerX + 15, y + 10 - armOffset, armW, armH); 
 
     // 6. НИКНЕЙМ
     ctx.fillStyle = 'white';
-    ctx.font = '16px Arial'; // Немного увеличен шрифт
+    ctx.font = '16px Arial'; 
     ctx.textAlign = 'center';
     ctx.fillText(nickname, centerX, y - 20); 
 
@@ -235,8 +229,8 @@ function draw() {
     // 3. Рисуем ДРУГИХ игроков
     for (const id in otherPlayers) {
         const p = otherPlayers[id];
-        // Используем новые размеры для рисования удаленных игроков
-        drawCharacter(ctx, p.x, p.y, player.w, player.h, p.vx, p.grounded, p.username, false);
+        // Используем переданные размеры p.w и p.h
+        drawCharacter(ctx, p.x, p.y, p.w || player.w, p.h || player.h, p.vx, p.grounded, p.username, false);
     }
     
     // 4. Рисуем СВОЕГО игрока
@@ -255,9 +249,8 @@ function loop() {
         socket.emit('player-update', {
             x: player.x,
             y: player.y,
-            // Передаем w и h, чтобы другие клиенты знали новые размеры
-            w: player.w,
-            h: player.h, 
+            w: player.w, // Отправляем размер
+            h: player.h, // Отправляем размер
             vx: player.vx,
             grounded: player.grounded
         });
@@ -271,7 +264,7 @@ function loop() {
 loop(); 
 
 // ===================================
-// 4. Управление и Сетевые слушатели (без изменений)
+// 4. Управление и Сетевые слушатели
 // ===================================
 
 document.getElementById('exit-game-btn').addEventListener('click', () => {
@@ -329,7 +322,7 @@ addTouch(btnJump, 'up');
 
 
 // ===================================
-// 5. Чат и Socket.io (без изменений)
+// 5. Чат и Socket.io
 // ===================================
 const chatInput = document.getElementById('chat-input');
 const chatMsgs = document.getElementById('chat-messages');

@@ -2,16 +2,15 @@
    GLOBAL/BASE (Clean Dark)
    ======================== */
 :root {
-    --bg-main: #14141d; /* Темно-синий фон игры */
-    --bg-darker: #0d0d14; /* Черный фон для хедера и карточек */
-    --text-main: #d8dee9; /* Светлый основной текст */
-    --accent-primary: #5e81ac; /* Акцент (Синий/Свой игрок/Кнопки) */
-    --accent-secondary: #a3be8c; /* Дополнительный акцент (Зеленый/Платформы) */
-    --danger: #bf616a; /* Красный (Выход/Ошибки) */
+    --bg-main: #14141d; 
+    --bg-darker: #0d0d14; 
+    --text-main: #d8dee9; 
+    --accent-primary: #5e81ac; 
+    --accent-secondary: #a3be8c; 
+    --danger: #bf616a; 
     --shadow-main: 0 4px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* ИСПРАВЛЕНИЕ ЭКРАНА: Убеждаемся, что HTML и BODY занимают всю высоту */
 html, body {
     height: 100%;
 }
@@ -149,7 +148,7 @@ h2 {
 }
 
 /* ========================
-   AUTH FORMS (Login/Register)
+   AUTH FORMS 
    ======================== */
 .auth-container {
     display: flex;
@@ -199,7 +198,7 @@ h2 {
 
 
 /* ========================
-   GAME PAGE (Canvas, Chat, Mobile Controls)
+   GAME PAGE 
    ======================== */
 
 body.game-page { 
@@ -228,16 +227,13 @@ body.game-page {
     box-shadow: var(--shadow-main);
     z-index: 10;
 }
-#exit-game-btn:hover {
-    background-color: #333;
-}
 
 /* ЧАТ СТИЛИ */
 #chat-box {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 300px;
+    width: 300px; /* Фиксированная ширина на десктопе */
     height: 300px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
@@ -275,13 +271,17 @@ body.game-page {
     box-sizing: border-box;
 }
 
-/* MOBILE CONTROLS */
+/* MOBILE CONTROLS (ФИКС) */
 #mobile-controls {
     position: absolute;
     bottom: 10px;
-    right: 10px;
+    left: 10px;
     display: none; 
     z-index: 100;
+    /* Используем Flexbox для лучшего расположения */
+    display: flex; 
+    justify-content: space-between;
+    width: calc(100% - 20px);
 }
 
 .control-btn {
@@ -299,34 +299,31 @@ body.game-page {
     touch-action: manipulation;
 }
 
-#btn-left, #btn-right {
-    position: absolute;
-    bottom: 5px;
-}
-
+/* Расположение кнопок */
 #btn-left {
-    left: -140px;
+    order: 1; 
 }
 
 #btn-right {
-    left: -70px;
+    order: 2; 
+    margin-left: 10px; 
 }
 
 #btn-jump {
-    position: relative;
-    float: right;
+    order: 3; 
+    margin-left: auto; /* Сдвигает кнопку прыжка максимально вправо */
 }
 
 /* Media Query: Показываем кнопки на маленьких экранах и настраиваем чат */
 @media (max-width: 800px) {
     #mobile-controls {
-        display: block;
+        display: flex; /* Делаем видимыми */
     }
     #chat-box {
-        width: 100%;
-        bottom: 0;
+        width: 40%; /* Чат занимает меньше места по ширине */
+        bottom: 80px; /* Поднимаем чат выше, чтобы избежать конфликта с кнопками */
         left: 0;
-        height: 200px;
-        border-radius: 0;
+        height: 250px; 
+        border-radius: 0 10px 0 0; 
     }
 }
